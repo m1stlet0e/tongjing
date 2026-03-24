@@ -1,35 +1,35 @@
 export const Colors = {
   light: {
-    textPrimary: "#1C1917",
-    textSecondary: "#78716c",
+    textPrimary: "#1A1A2E",
+    textSecondary: "#6B7280",
     textMuted: "#9CA3AF",
-    primary: "#4F46E5", // Indigo-600 - 品牌主色，代表科技与智能
-    accent: "#8B5CF6", // Violet-500 - 辅助色，代表创造力
-    success: "#10B981", // Emerald-500
+    primary: "#002FA7", // 克莱因蓝 - 专业、深邃、艺术
+    accent: "#C9A96E", // 香槟金 - 高端点缀
+    success: "#10B981",
     error: "#EF4444",
-    backgroundRoot: "#FAFAFA",
+    backgroundRoot: "#F8F6F2", // 米金白背景
     backgroundDefault: "#FFFFFF",
-    backgroundTertiary: "#F9FAFB", // 更浅的背景色，用于去线留白
+    backgroundTertiary: "#F3F1ED", // 去线留白
     buttonPrimaryText: "#FFFFFF",
-    tabIconSelected: "#4F46E5",
-    border: "#E5E7EB",
-    borderLight: "#F3F4F6",
+    tabIconSelected: "#002FA7",
+    border: "#E5E5E0",
+    borderLight: "#F0EDE7",
   },
   dark: {
     textPrimary: "#FAFAF9",
     textSecondary: "#A8A29E",
     textMuted: "#6F767E",
-    primary: "#818CF8", // Indigo-400 - 暗色模式品牌主色
-    accent: "#A78BFA", // Violet-400
+    primary: "#002FA7", // 克莱因蓝 - 保持一致
+    accent: "#C9A96E", // 香槟金 - 高端点缀
     success: "#34D399",
     error: "#F87171",
-    backgroundRoot: "#09090B", // 更深的背景色
-    backgroundDefault: "#1C1C1E",
-    backgroundTertiary: "#1F1F22", // 暗色模式去线留白背景
-    buttonPrimaryText: "#09090B",
-    tabIconSelected: "#818CF8",
-    border: "#3F3F46",
-    borderLight: "#27272A",
+    backgroundRoot: "#0A0A0F", // 深空黑背景 - 让照片成为焦点
+    backgroundDefault: "#1A1A2E", // 深蓝黑卡片背景
+    backgroundTertiary: "#1F1F2E", // 去线留白背景
+    buttonPrimaryText: "#FFFFFF",
+    tabIconSelected: "#002FA7",
+    border: "#2A2A3E",
+    borderLight: "#1F1F2E",
   },
 };
 
@@ -89,7 +89,7 @@ export const Typography = {
   h3: {
     fontSize: 24,
     lineHeight: 32,
-    fontWeight: "300" as const,
+    fontWeight: "300" as const, // 极细字重 - 高定感
   },
   h4: {
     fontSize: 20,
@@ -139,10 +139,10 @@ export const Typography = {
     textTransform: "uppercase" as const,
   },
   labelSmall: {
-    fontSize: 12,
+    fontSize: 11, // 极小字重 - 奢侈品感
     lineHeight: 16,
-    fontWeight: "500" as const,
-    letterSpacing: 1,
+    fontWeight: "300" as const, // 极细字重
+    letterSpacing: 6, // 大字间距
     textTransform: "uppercase" as const,
   },
   labelTitle: {
@@ -171,6 +171,13 @@ export const Typography = {
     fontSize: 10,
     lineHeight: 14,
     fontWeight: "500" as const,
+  },
+  // 技术参数专用 - 等宽字体风格
+  exifParam: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "400" as const,
+    fontFamily: "monospace" as const,
   },
 };
 
