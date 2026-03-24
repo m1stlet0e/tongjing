@@ -1,22 +1,14 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, FlatList } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
+import { useAuth } from '@/contexts/AuthContext';
 import { createStyles } from './styles';
 
 const EXPO_PUBLIC_BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
-
-interface User {
-  id: number;
-  username: string;
-  avatar_url: string;
-  bio: string;
-  photos_count: number;
-  followers_count: number;
-  following_count: number;
-}
 
 interface Equipment {
   brand: string;
@@ -29,104 +21,116 @@ export default function ProfileScreen() {
   const { theme, isDark } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useSafeRouter();
+  const { user: authUser, isAuthenticated, logout } = useAuth();
 
-  const [user, setUser] = useState<User | null>(null);
   const [photos, setPhotos] = useState<any[]>([]);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [footprint, setFootprint] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        /**
-         * 服务端文件：server/src/routes/users.ts
-         * 接口：GET /api/v1/users/me
-         */
-        const response = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/users/me`);
-        const result = await response.json();
-        if (result.success) {
-          setUser(result.data);
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
+  const fetchData = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      // 获取用户照片
+      const photosResponse = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/users/1/photos`);
+      const photosResult = await photosResponse.json();
+      if (photosResult.success) {
+        setPhotos(photosResult.data.photos);
       }
-    };
 
-    const fetchUserPhotos = async () => {
-      try {
-        /**
-         * 服务端文件：server/src/routes/users.ts
-         * 接口：GET /api/v1/users/:id/photos
-         */
-        const response = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/users/1/photos`);
-        const result = await response.json();
-        if (result.success) {
-          setPhotos(result.data.photos);
-        }
-      } catch (error) {
-        console.error('Error fetching photos:', error);
+      // 获取用户装备
+      const equipmentResponse = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/equipment/user/1`);
+      const equipmentResult = await equipmentResponse.json();
+      if (equipmentResult.success) {
+        setEquipment(equipmentResult.data.equipment);
       }
-    };
 
-    const fetchUserEquipment = async () => {
-      try {
-        /**
-         * 服务端文件：server/src/routes/equipment.ts
-         * 接口：GET /api/v1/equipment/user/:userId
-         */
-        const response = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/equipment/user/1`);
-        const result = await response.json();
-        if (result.success) {
-          setEquipment(result.data.equipment);
-        }
-      } catch (error) {
-        console.error('Error fetching equipment:', error);
+      // 获取用户足迹
+      const footprintResponse = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/users/1/footprint`);
+      const footprintResult = await footprintResponse.json();
+      if (footprintResult.success) {
+        setFootprint(footprintResult.data);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  }, [isAuthenticated]);
 
-    const fetchUserFootprint = async () => {
-      try {
-        /**
-         * 服务端文件：server/src/routes/users.ts
-         * 接口：GET /api/v1/users/:id/footprint
-         */
-        const response = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/users/1/footprint`);
-        const result = await response.json();
-        if (result.success) {
-          setFootprint(result.data);
-        }
-      } catch (error) {
-        console.error('Error fetching footprint:', error);
-      }
-    };
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
 
-    fetchUserData();
-    fetchUserPhotos();
-    fetchUserEquipment();
-    fetchUserFootprint();
-  }, []);
+  const handleLogout = () => {
+    Alert.alert(
+      '退出登录',
+      '确定要退出登录吗？',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '确定',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
+  // 未登录状态
+  if (!isAuthenticated) {
+    return (
+      <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={{ alignItems: 'center' }}
+            onPress={() => router.push('/login')}
+          >
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: theme.backgroundTertiary,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 3,
+                borderColor: theme.border,
+              }}
+            >
+              <FontAwesome6 name="user" size={32} color={theme.textMuted} />
+            </View>
+            <Text style={[styles.username, { marginTop: 16 }]}>点击登录</Text>
+            <Text style={styles.bio}>登录后查看个人中心</Text>
+          </TouchableOpacity>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen backgroundColor={theme.backgroundRoot} statusBarStyle="light">
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* 用户信息头部 */}
         <View style={styles.header}>
-          {user && (
+          {authUser && (
             <>
-              <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
-              <Text style={styles.username}>{user.username}</Text>
-              {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
+              <Image source={{ uri: authUser.avatar_url }} style={styles.avatar} />
+              <Text style={styles.username}>{authUser.username}</Text>
+              {authUser.bio && <Text style={styles.bio}>{authUser.bio}</Text>}
               <View style={styles.statsRow}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{user.photos_count}</Text>
+                  <Text style={styles.statValue}>{photos.length}</Text>
                   <Text style={styles.statLabel}>作品</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{user.followers_count}</Text>
+                  <Text style={styles.statValue}>0</Text>
                   <Text style={styles.statLabel}>粉丝</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{user.following_count}</Text>
+                  <Text style={styles.statValue}>0</Text>
                   <Text style={styles.statLabel}>关注</Text>
                 </View>
               </View>
@@ -200,6 +204,21 @@ export default function ProfileScreen() {
               <Text style={styles.footprintCount}>{location.photo_count} 张照片</Text>
             </View>
           ))}
+        </View>
+
+        {/* 退出登录 */}
+        <View style={[styles.section, { marginTop: 20 }]}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: theme.backgroundTertiary,
+              paddingVertical: 16,
+              borderRadius: 8,
+              alignItems: 'center',
+            }}
+            onPress={handleLogout}
+          >
+            <Text style={{ color: theme.error, fontSize: 15, fontWeight: '500' }}>退出登录</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </Screen>

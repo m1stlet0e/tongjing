@@ -1,4 +1,4 @@
-import { pgTable, serial, timestamp, unique, varchar, text, foreignKey, integer, jsonb, numeric } from "drizzle-orm/pg-core"
+import { pgTable, serial, timestamp, foreignKey, unique, integer, varchar, jsonb, text, numeric, index, boolean } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -7,17 +7,6 @@ export const healthCheck = pgTable("health_check", {
 	id: serial().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 });
-
-export const users = pgTable("users", {
-	id: serial().primaryKey().notNull(),
-	username: varchar({ length: 50 }).notNull(),
-	avatarUrl: text("avatar_url"),
-	bio: text(),
-	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-}, (table) => [
-	unique("users_username_key").on(table.username),
-]);
 
 export const userEquipment = pgTable("user_equipment", {
 	id: serial().primaryKey().notNull(),
@@ -166,4 +155,64 @@ export const userFollows = pgTable("user_follows", {
 			name: "user_follows_following_id_fkey"
 		}).onDelete("cascade"),
 	unique("user_follows_follower_id_following_id_key").on(table.followerId, table.followingId),
+]);
+
+export const users = pgTable("users", {
+	id: serial().primaryKey().notNull(),
+	username: varchar({ length: 50 }).notNull(),
+	avatarUrl: text("avatar_url"),
+	bio: text(),
+	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	phone: varchar({ length: 20 }),
+	passwordHash: varchar("password_hash", { length: 255 }),
+}, (table) => [
+	index("idx_users_phone").using("btree", table.phone.asc().nullsLast().op("text_ops")),
+	unique("users_username_key").on(table.username),
+	unique("users_phone_key").on(table.phone),
+]);
+
+export const userOauthProviders = pgTable("user_oauth_providers", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id"),
+	provider: varchar({ length: 20 }).notNull(),
+	providerUserId: varchar("provider_user_id", { length: 100 }).notNull(),
+	providerData: jsonb("provider_data"),
+	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "user_oauth_providers_user_id_fkey"
+		}).onDelete("cascade"),
+	unique("user_oauth_providers_provider_provider_user_id_key").on(table.provider, table.providerUserId),
+]);
+
+export const verificationCodes = pgTable("verification_codes", {
+	id: serial().primaryKey().notNull(),
+	phone: varchar({ length: 20 }).notNull(),
+	code: varchar({ length: 6 }).notNull(),
+	type: varchar({ length: 20 }).notNull(),
+	expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
+	used: boolean().default(false),
+	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+	index("idx_verification_codes_phone_type").using("btree", table.phone.asc().nullsLast().op("text_ops"), table.type.asc().nullsLast().op("text_ops")),
+]);
+
+export const userSessions = pgTable("user_sessions", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id"),
+	token: varchar({ length: 255 }).notNull(),
+	deviceInfo: jsonb("device_info"),
+	expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+	index("idx_user_sessions_token").using("btree", table.token.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "user_sessions_user_id_fkey"
+		}).onDelete("cascade"),
+	unique("user_sessions_token_key").on(table.token),
 ]);

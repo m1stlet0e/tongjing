@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, userEquipment, equipment, photos, photoTags, photoLikes, photoFavorites, photoComments, userFollows } from "./schema";
+import { users, userEquipment, equipment, photos, photoTags, photoLikes, photoFavorites, photoComments, userFollows, userOauthProviders, userSessions } from "./schema";
 
 export const userEquipmentRelations = relations(userEquipment, ({one}) => ({
 	user: one(users, {
@@ -24,6 +24,8 @@ export const usersRelations = relations(users, ({many}) => ({
 	userFollows_followingId: many(userFollows, {
 		relationName: "userFollows_followingId_users_id"
 	}),
+	userOauthProviders: many(userOauthProviders),
+	userSessions: many(userSessions),
 }));
 
 export const equipmentRelations = relations(equipment, ({many}) => ({
@@ -91,5 +93,19 @@ export const userFollowsRelations = relations(userFollows, ({one}) => ({
 		fields: [userFollows.followingId],
 		references: [users.id],
 		relationName: "userFollows_followingId_users_id"
+	}),
+}));
+
+export const userOauthProvidersRelations = relations(userOauthProviders, ({one}) => ({
+	user: one(users, {
+		fields: [userOauthProviders.userId],
+		references: [users.id]
+	}),
+}));
+
+export const userSessionsRelations = relations(userSessions, ({one}) => ({
+	user: one(users, {
+		fields: [userSessions.userId],
+		references: [users.id]
 	}),
 }));
