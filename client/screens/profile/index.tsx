@@ -1,5 +1,14 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  TouchableOpacity, 
+  Image, 
+  ActivityIndicator,
+  Modal,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
@@ -27,6 +36,7 @@ export default function ProfileScreen() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [footprint, setFootprint] = useState<any[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!isAuthenticated || !authUser) return;
@@ -63,30 +73,16 @@ export default function ProfileScreen() {
     }, [fetchData])
   );
 
-  const handleLogout = useCallback(() => {
-    Alert.alert(
-      '退出登录',
-      '确定要退出当前账号吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '退出',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsLoggingOut(true);
-              await logout();
-            } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert('提示', '退出登录失败，请重试');
-            } finally {
-              setIsLoggingOut(false);
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+  const handleLogout = useCallback(async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      setShowLogoutModal(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   }, [logout]);
 
   // 未登录状态
@@ -237,18 +233,17 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* 退出登录 */}
+        {/* 退出登录按钮 */}
         <View style={[styles.section, { marginTop: 20 }]}>
           <TouchableOpacity
             style={{
               backgroundColor: theme.backgroundTertiary,
               paddingVertical: 16,
-              borderRadius: 0,
               alignItems: 'center',
               flexDirection: 'row',
               justifyContent: 'center',
             }}
-            onPress={handleLogout}
+            onPress={() => setShowLogoutModal(true)}
             disabled={isLoggingOut}
             activeOpacity={0.7}
           >
@@ -268,6 +263,81 @@ export default function ProfileScreen() {
           <Text style={{ color: theme.textMuted, fontSize: 11 }}>光影工坊 v1.0.0</Text>
         </View>
       </ScrollView>
+
+      {/* 退出登录确认弹窗 */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowLogoutModal(false)}>
+          <View style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <TouchableWithoutFeedback>
+              <View style={{
+                backgroundColor: theme.backgroundDefault,
+                width: 280,
+                padding: 24,
+                alignItems: 'center',
+              }}>
+                <FontAwesome6 name="right-from-bracket" size={32} color={theme.error} style={{ marginBottom: 16 }} />
+                <Text style={{
+                  color: theme.textPrimary,
+                  fontSize: 18,
+                  fontWeight: '600',
+                  marginBottom: 8,
+                }}>
+                  退出登录
+                </Text>
+                <Text style={{
+                  color: theme.textSecondary,
+                  fontSize: 14,
+                  textAlign: 'center',
+                  marginBottom: 24,
+                }}>
+                  确定要退出当前账号吗？
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      backgroundColor: theme.backgroundTertiary,
+                      alignItems: 'center',
+                    }}
+                    onPress={() => setShowLogoutModal(false)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={{ color: theme.textPrimary, fontSize: 15 }}>取消</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      backgroundColor: theme.error,
+                      alignItems: 'center',
+                    }}
+                    onPress={handleLogout}
+                    disabled={isLoggingOut}
+                    activeOpacity={0.7}
+                  >
+                    {isLoggingOut ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '500' }}>退出</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </Screen>
   );
 }
