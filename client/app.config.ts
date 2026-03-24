@@ -1,6 +1,6 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
-const appName = process.env.COZE_PROJECT_NAME || process.env.EXPO_PUBLIC_COZE_PROJECT_NAME || '应用';
+const appName = '同镜';
 const projectId = process.env.COZE_PROJECT_ID || process.env.EXPO_PUBLIC_COZE_PROJECT_ID;
 const slugAppName = projectId ? `app${projectId}` : 'myapp';
 
@@ -49,22 +49,22 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         "expo-image-picker",
         {
-          "photosPermission": `允许摄景家App访问您的相册，以便您上传或保存图片。`,
-          "cameraPermission": `允许摄景家App使用您的相机，以便您直接拍摄照片上传。`,
-          "microphonePermission": `允许摄景家App访问您的麦克风，以便您拍摄带有声音的视频。`
+          "photosPermission": `允许同镜访问您的相册，以便您上传或保存照片。`,
+          "cameraPermission": `允许同镜使用您的相机，以便您直接拍摄照片上传。`,
+          "microphonePermission": `允许同镜访问您的麦克风，以便您拍摄带有声音的视频。`
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": `摄景家App需要访问您的位置以提供周边服务及导航功能。`
+          "locationWhenInUsePermission": `同镜需要访问您的位置以记录拍摄地点和发现周边机位。`
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": `摄景家App需要访问相机以拍摄照片和视频。`,
-          "microphonePermission": `摄景家App需要访问麦克风以录制视频声音。`,
+          "cameraPermission": `同镜需要访问相机以拍摄照片和视频。`,
+          "microphonePermission": `同镜需要访问麦克风以录制视频声音。`,
           "recordAudioAndroid": true
         }
       ]
