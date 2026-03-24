@@ -16,9 +16,9 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (user: User, token: string) => void;
+  login: (user: User, token: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (userData: Partial<User>) => void;
+  updateUser: (userData: Partial<User>) => Promise<void>;
   checkAuth: () => Promise<void>;
 }
 
@@ -52,6 +52,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (result.success) {
             setToken(storedToken);
             setUser(result.data);
+            // 更新本地存储的用户信息
+            await AsyncStorage.setItem('user_info', JSON.stringify(result.data));
           } else {
             // Token无效，清除本地存储
             await AsyncStorage.multiRemove(['auth_token', 'user_info']);
@@ -63,6 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (error) {
       console.error('Error checking auth:', error);
+      // 网络错误时不清除本地数据，保留登录状态
     } finally {
       setIsLoading(false);
     }
@@ -73,37 +76,69 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     checkAuth();
   }, [checkAuth]);
 
-  // 登录
-  const login = useCallback((userData: User, tokenStr: string) => {
-    setUser(userData);
-    setToken(tokenStr);
-  }, []);
-
-  // 登出
-  const logout = useCallback(async () => {
+  // 登录 - 保存到本地存储和更新状态
+  const login = useCallback(async (userData: User, tokenStr: string) => {
     try {
-      // 调用后端退出接口
-      if (token) {
-        await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/auth/logout`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
+      // 先更新状态
+      setUser(userData);
+      setToken(tokenStr);
+      
+      // 再保存到本地存储
+      await AsyncStorage.multiSet([
+        ['auth_token', tokenStr],
+        ['user_info', JSON.stringify(userData)],
+      ]);
     } catch (error) {
-      console.error('Error logout:', error);
-    } finally {
-      // 清除本地状态
+      console.error('Error saving auth data:', error);
+      // 回滚状态
       setUser(null);
       setToken(null);
-      await AsyncStorage.multiRemove(['auth_token', 'user_info']);
+      throw error;
+    }
+  }, []);
+
+  // 登出 - 完整清理
+  const logout = useCallback(async () => {
+    try {
+      // 先调用后端退出接口（如果有token）
+      if (token) {
+        try {
+          await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/auth/logout`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        } catch (apiError) {
+          // API调用失败不影响本地清理
+          console.error('Error calling logout API:', apiError);
+        }
+      }
+    } finally {
+      // 无论API是否成功，都清理本地状态
+      setUser(null);
+      setToken(null);
+      
+      // 清理本地存储
+      try {
+        await AsyncStorage.multiRemove(['auth_token', 'user_info']);
+      } catch (storageError) {
+        console.error('Error clearing storage:', storageError);
+      }
     }
   }, [token]);
 
-  // 更新用户信息
-  const updateUser = useCallback((userData: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...userData } : null);
+  // 更新用户信息 - 同步到本地存储
+  const updateUser = useCallback(async (userData: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, ...userData };
+      // 异步更新本地存储
+      AsyncStorage.setItem('user_info', JSON.stringify(updated)).catch(err => {
+        console.error('Error updating user info in storage:', err);
+      });
+      return updated;
+    });
   }, []);
 
   const value: AuthContextType = {

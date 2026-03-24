@@ -26,13 +26,15 @@ export const createStyles = (theme: Theme) => {
       fontSize: 28,
       fontWeight: '700',
       marginBottom: Spacing.sm,
+      letterSpacing: 2,
     },
     subtitle: {
       color: theme.textSecondary,
       fontSize: 14,
+      letterSpacing: 1,
     },
     form: {
-      marginBottom: Spacing["3xl"],
+      marginBottom: Spacing["2xl"],
     },
     inputContainer: {
       marginBottom: Spacing.lg,
@@ -42,17 +44,22 @@ export const createStyles = (theme: Theme) => {
       fontSize: 13,
       fontWeight: '600',
       marginBottom: Spacing.sm,
+      letterSpacing: 0.5,
     },
     input: {
       backgroundColor: theme.backgroundTertiary,
-      borderRadius: BorderRadius.md,
+      borderRadius: 0,
       paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.lg,
       color: theme.textPrimary,
       fontSize: 16,
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+    inputFocused: {
+      borderColor: theme.primary,
     },
     inputError: {
-      borderWidth: 1,
       borderColor: theme.error,
     },
     errorText: {
@@ -63,33 +70,38 @@ export const createStyles = (theme: Theme) => {
     codeRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: Spacing.md,
     },
     codeInput: {
       flex: 1,
+      marginRight: Spacing.md,
     },
     codeButton: {
       backgroundColor: theme.backgroundTertiary,
       paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.lg,
-      borderRadius: BorderRadius.md,
-      minWidth: 120,
+      borderRadius: 0,
+      minWidth: 110,
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.primary,
     },
     codeButtonDisabled: {
-      opacity: 0.5,
+      borderColor: theme.border,
     },
     codeButtonText: {
       color: theme.primary,
       fontSize: 14,
       fontWeight: '500',
     },
+    codeButtonTextDisabled: {
+      color: theme.textMuted,
+    },
     loginButton: {
       backgroundColor: theme.primary,
       paddingVertical: Spacing.xl,
       borderRadius: 0,
       alignItems: 'center',
-      marginTop: Spacing.xl,
+      marginTop: Spacing["2xl"],
     },
     loginButtonDisabled: {
       opacity: 0.6,
@@ -98,12 +110,12 @@ export const createStyles = (theme: Theme) => {
       color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
-      letterSpacing: 1,
+      letterSpacing: 2,
     },
     divider: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginVertical: Spacing["3xl"],
+      marginVertical: Spacing["2xl"],
     },
     dividerLine: {
       flex: 1,
@@ -118,14 +130,14 @@ export const createStyles = (theme: Theme) => {
     oauthContainer: {
       alignItems: 'center',
     },
-    oauthTitle: {
-      color: theme.textSecondary,
-      fontSize: 13,
-      marginBottom: Spacing.xl,
-    },
     oauthButtons: {
       flexDirection: 'row',
-      gap: Spacing["2xl"],
+      justifyContent: 'center',
+      gap: Spacing["4xl"],
+      marginTop: Spacing.xl,
+    },
+    oauthButtonItem: {
+      alignItems: 'center',
     },
     oauthButton: {
       width: 56,
@@ -133,6 +145,7 @@ export const createStyles = (theme: Theme) => {
       borderRadius: 28,
       justifyContent: 'center',
       alignItems: 'center',
+      marginBottom: Spacing.sm,
     },
     wechatButton: {
       backgroundColor: '#07C160',
@@ -140,17 +153,46 @@ export const createStyles = (theme: Theme) => {
     weiboButton: {
       backgroundColor: '#E6162D',
     },
+    oauthButtonText: {
+      color: theme.textSecondary,
+      fontSize: 12,
+      marginTop: Spacing.xs,
+    },
     agreement: {
-      marginTop: Spacing["3xl"],
+      marginTop: 'auto',
+      paddingTop: Spacing["3xl"],
       alignItems: 'center',
     },
     agreementText: {
       color: theme.textMuted,
-      fontSize: 12,
+      fontSize: 11,
       textAlign: 'center',
+      lineHeight: 20,
     },
     agreementLink: {
       color: theme.primary,
+    },
+    // Toast样式
+    toast: {
+      position: 'absolute',
+      top: 60,
+      left: Spacing["2xl"],
+      right: Spacing["2xl"],
+      backgroundColor: theme.textPrimary,
+      paddingVertical: Spacing.md,
+      paddingHorizontal: Spacing.lg,
+      borderRadius: BorderRadius.md,
+      alignItems: 'center',
+    },
+    toastText: {
+      color: theme.backgroundRoot,
+      fontSize: 14,
+    },
+    toastError: {
+      backgroundColor: theme.error,
+    },
+    toastSuccess: {
+      backgroundColor: theme.success,
     },
   });
 };
