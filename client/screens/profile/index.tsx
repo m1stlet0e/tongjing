@@ -260,7 +260,7 @@ export default function ProfileScreen() {
 
         {/* 版本信息 */}
         <View style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 40 }}>
-          <Text style={{ color: theme.textMuted, fontSize: 11 }}>光影工坊 v1.0.0</Text>
+          <Text style={{ color: theme.textMuted, fontSize: 11 }}>同镜 v1.0.0</Text>
         </View>
       </ScrollView>
 

@@ -271,8 +271,8 @@ export default function LoginScreen() {
           }}>
             <FontAwesome6 name="camera" size={36} color="#FFFFFF" />
           </View>
-          <Text style={styles.title}>光影工坊</Text>
-          <Text style={styles.subtitle}>记录光影，分享美好</Text>
+          <Text style={styles.title}>同镜</Text>
+          <Text style={styles.subtitle}>取景框里的光影故事</Text>
         </View>
 
         {/* 手机号登录表单 */}
