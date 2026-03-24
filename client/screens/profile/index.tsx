@@ -16,8 +16,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/contexts/AuthContext';
 import { createStyles } from './styles';
-
-const EXPO_PUBLIC_BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
+import { apiGet } from '@/utils/api';
 
 interface Equipment {
   brand: string;
@@ -43,21 +42,33 @@ export default function ProfileScreen() {
     
     try {
       // 获取用户照片
-      const photosResponse = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/users/${authUser.id}/photos`);
+      /**
+       * 服务端文件：server/src/routes/users.ts
+       * 接口：GET /api/v1/users/:id/photos
+       */
+      const photosResponse = await apiGet(`/api/v1/users/${authUser.id}/photos`);
       const photosResult = await photosResponse.json();
       if (photosResult.success) {
         setPhotos(photosResult.data.photos);
       }
 
       // 获取用户装备
-      const equipmentResponse = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/equipment/user/${authUser.id}`);
+      /**
+       * 服务端文件：server/src/routes/equipment.ts
+       * 接口：GET /api/v1/equipment/user/:userId
+       */
+      const equipmentResponse = await apiGet(`/api/v1/equipment/user/${authUser.id}`);
       const equipmentResult = await equipmentResponse.json();
       if (equipmentResult.success) {
         setEquipment(equipmentResult.data.equipment);
       }
 
       // 获取用户足迹
-      const footprintResponse = await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/users/${authUser.id}/footprint`);
+      /**
+       * 服务端文件：server/src/routes/users.ts
+       * 接口：GET /api/v1/users/:id/footprint
+       */
+      const footprintResponse = await apiGet(`/api/v1/users/${authUser.id}/footprint`);
       const footprintResult = await footprintResponse.json();
       if (footprintResult.success) {
         setFootprint(footprintResult.data);

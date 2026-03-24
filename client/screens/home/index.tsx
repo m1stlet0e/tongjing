@@ -6,8 +6,7 @@ import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import PhotoCard, { Photo } from '@/components/PhotoCard';
 import { createStyles } from './styles';
-
-const EXPO_PUBLIC_BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
+import { apiGet, apiPost } from '@/utils/api';
 
 export default function HomeScreen() {
   const { theme, isDark } = useTheme();
@@ -29,9 +28,7 @@ export default function HomeScreen() {
        * 接口：GET /api/v1/photos
        * Query 参数：page: number, limit: number, tab: 'hot' | 'latest' | 'following'
        */
-      const response = await fetch(
-        `${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos?page=${pageNum}&limit=10&tab=${tab}`
-      );
+      const response = await apiGet(`/api/v1/photos?page=${pageNum}&limit=10&tab=${tab}`);
       const result = await response.json();
 
       if (result.success) {
@@ -70,10 +67,15 @@ export default function HomeScreen() {
       /**
        * 服务端文件：server/src/routes/photos.ts
        * 接口：POST /api/v1/photos/:id/like
+       * 需要登录：是
        */
-      await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photoId}/like`, {
-        method: 'POST',
-      });
+      const response = await apiPost(`/api/v1/photos/${photoId}/like`);
+      const result = await response.json();
+      
+      if (response.status === 401) {
+        // 未登录，提示用户
+        return;
+      }
 
       setPhotos(prev =>
         prev.map(p => {
@@ -97,10 +99,14 @@ export default function HomeScreen() {
       /**
        * 服务端文件：server/src/routes/photos.ts
        * 接口：POST /api/v1/photos/:id/favorite
+       * 需要登录：是
        */
-      await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photoId}/favorite`, {
-        method: 'POST',
-      });
+      const response = await apiPost(`/api/v1/photos/${photoId}/favorite`);
+      
+      if (response.status === 401) {
+        // 未登录，提示用户
+        return;
+      }
 
       setPhotos(prev =>
         prev.map(p => {

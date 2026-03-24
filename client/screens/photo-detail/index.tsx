@@ -5,8 +5,7 @@ import { useSafeSearchParams } from '@/hooks/useSafeRouter';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { createStyles } from './styles';
-
-const EXPO_PUBLIC_BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
+import { apiGet, apiPost } from '@/utils/api';
 
 export default function PhotoDetailScreen() {
   const { theme, isDark } = useTheme();
@@ -26,9 +25,7 @@ export default function PhotoDetailScreen() {
        * 服务端文件：server/src/routes/photos.ts
        * 接口：GET /api/v1/photos/:id
        */
-      const response = await fetch(
-        `${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${params.id}`
-      );
+      const response = await apiGet(`/api/v1/photos/${params.id}`);
       const result = await response.json();
       if (result.success) {
         setPhoto(result.data);
@@ -43,9 +40,14 @@ export default function PhotoDetailScreen() {
   const handleLike = async () => {
     if (!photo) return;
     try {
-      await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photo.id}/like`, {
-        method: 'POST',
-      });
+      /**
+       * 服务端文件：server/src/routes/photos.ts
+       * 接口：POST /api/v1/photos/:id/like
+       * 需要登录：是
+       */
+      const response = await apiPost(`/api/v1/photos/${photo.id}/like`);
+      if (response.status === 401) return;
+      const result = await response.json();
       setPhoto({
         ...photo,
         is_liked: !photo.is_liked,
@@ -59,9 +61,14 @@ export default function PhotoDetailScreen() {
   const handleFavorite = async () => {
     if (!photo) return;
     try {
-      await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photo.id}/favorite`, {
-        method: 'POST',
-      });
+      /**
+       * 服务端文件：server/src/routes/photos.ts
+       * 接口：POST /api/v1/photos/:id/favorite
+       * 需要登录：是
+       */
+      const response = await apiPost(`/api/v1/photos/${photo.id}/favorite`);
+      if (response.status === 401) return;
+      const result = await response.json();
       setPhoto({
         ...photo,
         is_favorited: !photo.is_favorited,

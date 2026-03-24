@@ -134,6 +134,9 @@ export const createStyles = (theme: Theme) => {
       borderRadius: 0,
       alignItems: 'center',
     },
+    publishButtonDisabled: {
+      opacity: 0.6,
+    },
     publishButtonText: {
       color: '#FFFFFF',
       fontSize: 14,

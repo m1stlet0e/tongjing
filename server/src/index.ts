@@ -5,6 +5,7 @@ import usersRouter from "./routes/users";
 import equipmentRouter from "./routes/equipment";
 import mapRouter from "./routes/map";
 import authRouter from "./routes/auth";
+import uploadRouter from "./routes/upload";
 
 const app = express();
 const port = process.env.PORT || 9091;
@@ -22,6 +23,7 @@ app.get('/api/v1/health', (req, res) => {
 
 // Routes
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/upload', uploadRouter);
 app.use('/api/v1/photos', photosRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/equipment', equipmentRouter);

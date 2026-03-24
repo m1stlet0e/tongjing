@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { getSupabaseClient } from '../storage/database/supabase-client';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 const router = Router();
 
@@ -8,11 +9,12 @@ const router = Router();
  * 获取照片列表，支持筛选
  * Query参数：page, limit, tab(following/hot/latest), camera, lens, scene
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 10, tab = 'hot', camera, lens, scene } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     const client = getSupabaseClient();
+    const currentUserId = req.userId;
 
     // 构建基础查询
     let query = client
@@ -58,7 +60,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     if (error) throw error;
 
-    // 获取每张照片的标签
+    // 获取每张照片的标签和互动状态
     const photosWithTags = await Promise.all(
       (photos || []).map(async (photo) => {
         const { data: tags } = await client
@@ -66,14 +68,36 @@ router.get('/', async (req: Request, res: Response) => {
           .select('tag_name, tag_type')
           .eq('photo_id', photo.id);
 
+        // 检查当前用户的点赞/收藏状态
+        let is_liked = false;
+        let is_favorited = false;
+
+        if (currentUserId) {
+          const { data: likeRecord } = await client
+            .from('photo_likes')
+            .select('id')
+            .eq('photo_id', photo.id)
+            .eq('user_id', currentUserId)
+            .single();
+          is_liked = !!likeRecord;
+
+          const { data: favoriteRecord } = await client
+            .from('photo_favorites')
+            .select('id')
+            .eq('photo_id', photo.id)
+            .eq('user_id', currentUserId)
+            .single();
+          is_favorited = !!favoriteRecord;
+        }
+
         const user = photo.users as any;
         return {
           ...photo,
           username: user?.username,
           avatar_url: user?.avatar_url,
           tags: tags || [],
-          is_liked: false,
-          is_favorited: false,
+          is_liked,
+          is_favorited,
         };
       })
     );
@@ -104,10 +128,11 @@ router.get('/', async (req: Request, res: Response) => {
  * GET /api/v1/photos/:id
  * 获取照片详情
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const client = getSupabaseClient();
+    const currentUserId = req.userId;
 
     const { data: photo, error } = await client
       .from('photos')
@@ -139,6 +164,28 @@ router.get('/:id', async (req: Request, res: Response) => {
       .order('created_at', { ascending: false })
       .limit(20);
 
+    // 检查当前用户的点赞/收藏状态
+    let is_liked = false;
+    let is_favorited = false;
+
+    if (currentUserId) {
+      const { data: likeRecord } = await client
+        .from('photo_likes')
+        .select('id')
+        .eq('photo_id', id)
+        .eq('user_id', currentUserId)
+        .single();
+      is_liked = !!likeRecord;
+
+      const { data: favoriteRecord } = await client
+        .from('photo_favorites')
+        .select('id')
+        .eq('photo_id', id)
+        .eq('user_id', currentUserId)
+        .single();
+      is_favorited = !!favoriteRecord;
+    }
+
     const user = photo.users as any;
     res.json({
       success: true,
@@ -153,8 +200,8 @@ router.get('/:id', async (req: Request, res: Response) => {
           username: (c.users as any)?.username,
           avatar_url: (c.users as any)?.avatar_url,
         })),
-        is_liked: false,
-        is_favorited: false,
+        is_liked,
+        is_favorited,
       },
     });
   } catch (error) {
@@ -166,9 +213,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 /**
  * POST /api/v1/photos
  * 发布照片（包含EXIF自动提取）
- * Body: image_url, title, description, shooting_tips, tags
+ * Body: image_url, title, description, shooting_tips, tags, exif_data
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const {
       image_url,
@@ -179,25 +226,28 @@ router.post('/', async (req: Request, res: Response) => {
       latitude,
       longitude,
       location_name,
+      exif_data, // 前端解析的EXIF数据
     } = req.body;
-    const client = getSupabaseClient();
 
-    // 模拟EXIF数据
-    const exifData = {
-      camera_brand: 'Sony',
-      camera_model: 'A7M4',
-      lens_model: 'FE 24-70mm F2.8 GM II',
-      focal_length: '35mm',
-      aperture: 'F2.8',
-      shutter_speed: '1/500s',
-      iso: 400,
-      white_balance: 'Auto',
+    const client = getSupabaseClient();
+    const userId = req.userId!;
+
+    // 使用前端传递的EXIF数据，如果没有则使用默认值
+    const exifData = exif_data || {
+      camera_brand: 'Unknown',
+      camera_model: 'Unknown',
+      lens_model: null,
+      focal_length: null,
+      aperture: null,
+      shutter_speed: null,
+      iso: null,
+      white_balance: null,
     };
 
     const { data: photo, error } = await client
       .from('photos')
       .insert({
-        user_id: 1,
+        user_id: userId,
         image_url,
         title,
         description,
@@ -242,12 +292,12 @@ router.post('/', async (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/photos/:id/like
- * 点赞/取消点赞
+ * 点赞/取消点赞（需要登录）
  */
-router.post('/:id/like', async (req: Request, res: Response) => {
+router.post('/:id/like', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = 1;
+    const userId = req.userId!;
     const client = getSupabaseClient();
 
     // 检查是否已点赞
@@ -265,11 +315,6 @@ router.post('/:id/like', async (req: Request, res: Response) => {
         .delete()
         .eq('photo_id', id)
         .eq('user_id', userId);
-      
-      await client
-        .from('photos')
-        .update({ likes_count: client.rpc('decrement_likes', { row_id: id }) })
-        .eq('id', id);
       
       // 简单更新：直接减1
       const { data: photo } = await client
@@ -313,12 +358,12 @@ router.post('/:id/like', async (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/photos/:id/favorite
- * 收藏/取消收藏
+ * 收藏/取消收藏（需要登录）
  */
-router.post('/:id/favorite', async (req: Request, res: Response) => {
+router.post('/:id/favorite', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = 1;
+    const userId = req.userId!;
     const client = getSupabaseClient();
 
     // 检查是否已收藏
@@ -378,18 +423,22 @@ router.post('/:id/favorite', async (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/photos/:id/comments
- * 添加评论
+ * 添加评论（需要登录）
  */
-router.post('/:id/comments', async (req: Request, res: Response) => {
+router.post('/:id/comments', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
-    const userId = 1;
+    const userId = req.userId!;
     const client = getSupabaseClient();
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ success: false, error: '评论内容不能为空' });
+    }
 
     const { data: comment, error } = await client
       .from('photo_comments')
-      .insert({ photo_id: Number(id), user_id: userId, content })
+      .insert({ photo_id: Number(id), user_id: userId, content: content.trim() })
       .select()
       .single();
 
@@ -428,6 +477,50 @@ router.post('/:id/comments', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({ success: false, error: 'Failed to add comment' });
+  }
+});
+
+/**
+ * DELETE /api/v1/photos/:id
+ * 删除照片（需要登录且是照片所有者）
+ */
+router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId!;
+    const client = getSupabaseClient();
+
+    // 检查照片是否存在且属于当前用户
+    const { data: photo, error: fetchError } = await client
+      .from('photos')
+      .select('id, user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !photo) {
+      return res.status(404).json({ success: false, error: '照片不存在' });
+    }
+
+    if (photo.user_id !== userId) {
+      return res.status(403).json({ success: false, error: '无权删除此照片' });
+    }
+
+    // 删除相关数据
+    await client.from('photo_likes').delete().eq('photo_id', id);
+    await client.from('photo_favorites').delete().eq('photo_id', id);
+    await client.from('photo_comments').delete().eq('photo_id', id);
+    await client.from('photo_tags').delete().eq('photo_id', id);
+
+    // 删除照片
+    await client.from('photos').delete().eq('id', id);
+
+    res.json({
+      success: true,
+      message: '照片已删除',
+    });
+  } catch (error) {
+    console.error('Error deleting photo:', error);
+    res.status(500).json({ success: false, error: '删除照片失败' });
   }
 });
 

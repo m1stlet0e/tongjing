@@ -1,20 +1,22 @@
 import { Router, type Request, type Response } from 'express';
 import { getSupabaseClient } from '../storage/database/supabase-client';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 const router = Router();
 
 /**
  * GET /api/v1/users/me
- * 获取当前用户信息
+ * 获取当前登录用户信息（需要登录）
  */
-router.get('/me', async (req: Request, res: Response) => {
+router.get('/me', authMiddleware, async (req: Request, res: Response) => {
   try {
     const client = getSupabaseClient();
+    const userId = req.userId!;
 
     const { data: user, error } = await client
       .from('users')
       .select('*')
-      .eq('id', 1)
+      .eq('id', userId)
       .single();
 
     if (error || !user) {
@@ -25,17 +27,17 @@ router.get('/me', async (req: Request, res: Response) => {
     const { count: photosCount } = await client
       .from('photos')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', 1);
+      .eq('user_id', userId);
 
     const { count: followersCount } = await client
       .from('user_follows')
       .select('*', { count: 'exact', head: true })
-      .eq('following_id', 1);
+      .eq('following_id', userId);
 
     const { count: followingCount } = await client
       .from('user_follows')
       .select('*', { count: 'exact', head: true })
-      .eq('follower_id', 1);
+      .eq('follower_id', userId);
 
     res.json({
       success: true,
@@ -53,12 +55,52 @@ router.get('/me', async (req: Request, res: Response) => {
 });
 
 /**
+ * PATCH /api/v1/users/me
+ * 更新当前用户信息（需要登录）
+ */
+router.patch('/me', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { username, bio, avatar_url } = req.body;
+    const client = getSupabaseClient();
+    const userId = req.userId!;
+
+    const updateData: any = {};
+    if (username) updateData.username = username;
+    if (bio !== undefined) updateData.bio = bio;
+    if (avatar_url) updateData.avatar_url = avatar_url;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, error: '没有要更新的内容' });
+    }
+
+    const { data: user, error } = await client
+      .from('users')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      data: user,
+      message: '更新成功',
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ success: false, error: '更新失败' });
+  }
+});
+
+/**
  * GET /api/v1/users/:id
  * 获取用户信息
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const currentUserId = req.userId;
     const client = getSupabaseClient();
 
     const { data: user, error } = await client
@@ -88,12 +130,16 @@ router.get('/:id', async (req: Request, res: Response) => {
       .eq('follower_id', id);
 
     // 检查是否已关注
-    const { data: follow } = await client
-      .from('user_follows')
-      .select('*')
-      .eq('follower_id', 1)
-      .eq('following_id', id)
-      .single();
+    let is_following = false;
+    if (currentUserId) {
+      const { data: follow } = await client
+        .from('user_follows')
+        .select('*')
+        .eq('follower_id', currentUserId)
+        .eq('following_id', id)
+        .single();
+      is_following = !!follow;
+    }
 
     res.json({
       success: true,
@@ -102,7 +148,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         photos_count: photosCount || 0,
         followers_count: followersCount || 0,
         following_count: followingCount || 0,
-        is_following: !!follow,
+        is_following,
       },
     });
   } catch (error) {
@@ -115,12 +161,13 @@ router.get('/:id', async (req: Request, res: Response) => {
  * GET /api/v1/users/:id/photos
  * 获取用户的作品集
  */
-router.get('/:id/photos', async (req: Request, res: Response) => {
+router.get('/:id/photos', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { page = 1, limit = 12 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     const client = getSupabaseClient();
+    const currentUserId = req.userId;
 
     const { data: photos, error } = await client
       .from('photos')
@@ -136,14 +183,42 @@ router.get('/:id/photos', async (req: Request, res: Response) => {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', id);
 
+    // 检查当前用户的点赞/收藏状态
+    const photosWithStatus = await Promise.all(
+      (photos || []).map(async (photo) => {
+        let is_liked = false;
+        let is_favorited = false;
+
+        if (currentUserId) {
+          const { data: likeRecord } = await client
+            .from('photo_likes')
+            .select('id')
+            .eq('photo_id', photo.id)
+            .eq('user_id', currentUserId)
+            .single();
+          is_liked = !!likeRecord;
+
+          const { data: favoriteRecord } = await client
+            .from('photo_favorites')
+            .select('id')
+            .eq('photo_id', photo.id)
+            .eq('user_id', currentUserId)
+            .single();
+          is_favorited = !!favoriteRecord;
+        }
+
+        return {
+          ...photo,
+          is_liked,
+          is_favorited,
+        };
+      })
+    );
+
     res.json({
       success: true,
       data: {
-        photos: (photos || []).map(p => ({
-          ...p,
-          is_liked: false,
-          is_favorited: false,
-        })),
+        photos: photosWithStatus,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -161,12 +236,13 @@ router.get('/:id/photos', async (req: Request, res: Response) => {
  * GET /api/v1/users/:id/favorites
  * 获取用户的收藏
  */
-router.get('/:id/favorites', async (req: Request, res: Response) => {
+router.get('/:id/favorites', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { page = 1, limit = 12 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     const client = getSupabaseClient();
+    const currentUserId = req.userId;
 
     const { data: favorites, error } = await client
       .from('photo_favorites')
@@ -188,12 +264,30 @@ router.get('/:id/favorites', async (req: Request, res: Response) => {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', id);
 
-    const photos = (favorites || []).map((f: any) => ({
-      ...f.photos,
-      username: f.photos?.users?.username,
-      avatar_url: f.photos?.users?.avatar_url,
-      favorited_at: f.created_at,
-    }));
+    const photos = await Promise.all(
+      (favorites || []).map(async (f: any) => {
+        let is_liked = false;
+
+        if (currentUserId) {
+          const { data: likeRecord } = await client
+            .from('photo_likes')
+            .select('id')
+            .eq('photo_id', f.photos?.id)
+            .eq('user_id', currentUserId)
+            .single();
+          is_liked = !!likeRecord;
+        }
+
+        return {
+          ...f.photos,
+          username: f.photos?.users?.username,
+          avatar_url: f.photos?.users?.avatar_url,
+          favorited_at: f.created_at,
+          is_liked,
+          is_favorited: true,
+        };
+      })
+    );
 
     res.json({
       success: true,
@@ -223,7 +317,7 @@ router.get('/:id/footprint', async (req: Request, res: Response) => {
 
     const { data: photos, error } = await client
       .from('photos')
-      .select('latitude, longitude, location_name')
+      .select('id, latitude, longitude, location_name, image_url, title')
       .eq('user_id', id)
       .not('latitude', 'is', null)
       .not('longitude', 'is', null);
@@ -231,18 +325,27 @@ router.get('/:id/footprint', async (req: Request, res: Response) => {
     if (error) throw error;
 
     // 按地点分组统计
-    const locationMap = new Map<string, { latitude: number; longitude: number; location_name: string; photo_count: number }>();
+    const locationMap = new Map<string, { 
+      latitude: number; 
+      longitude: number; 
+      location_name: string; 
+      photo_count: number;
+      photos: any[];
+    }>();
     
     (photos || []).forEach((photo: any) => {
       const key = photo.location_name || `${photo.latitude},${photo.longitude}`;
       if (locationMap.has(key)) {
-        locationMap.get(key)!.photo_count++;
+        const loc = locationMap.get(key)!;
+        loc.photo_count++;
+        loc.photos.push(photo);
       } else {
         locationMap.set(key, {
           latitude: photo.latitude,
           longitude: photo.longitude,
           location_name: photo.location_name,
           photo_count: 1,
+          photos: [photo],
         });
       }
     });
@@ -259,16 +362,27 @@ router.get('/:id/footprint', async (req: Request, res: Response) => {
 
 /**
  * POST /api/v1/users/:id/follow
- * 关注/取消关注用户
+ * 关注/取消关注用户（需要登录）
  */
-router.post('/:id/follow', async (req: Request, res: Response) => {
+router.post('/:id/follow', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const currentUserId = 1;
+    const currentUserId = req.userId!;
     const client = getSupabaseClient();
 
     if (Number(id) === currentUserId) {
       return res.status(400).json({ success: false, error: 'Cannot follow yourself' });
+    }
+
+    // 检查目标用户是否存在
+    const { data: targetUser } = await client
+      .from('users')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (!targetUser) {
+      return res.status(404).json({ success: false, error: '用户不存在' });
     }
 
     // 检查是否已关注
