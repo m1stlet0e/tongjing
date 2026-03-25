@@ -8,13 +8,16 @@ import {
   ActivityIndicator,
   RefreshControl,
   Dimensions,
+  TextInput,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Screen } from '@/components/Screen';
-import { createStyles, KLEIN_BLUE, BACKGROUND_LIGHT, TEXT_PRIMARY, TEXT_MUTED, TEXT_SECONDARY, BORDER_LIGHT } from './styles';
+import { createStyles, KLEIN_BLUE, BACKGROUND_LIGHT, TEXT_PRIMARY, TEXT_MUTED, TEXT_SECONDARY, BORDER_LIGHT, CARD_WHITE } from './styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -30,6 +33,8 @@ interface PhotoItem {
   camera_model: string;
   focal_length: string;
   aperture: string;
+  shutter_speed: string;
+  iso: number;
   username: string;
   avatar_url: string;
   likes_count: number;
@@ -40,15 +45,6 @@ interface PhotoItem {
   is_favorited: boolean;
 }
 
-// 模拟 Stories 数据
-const STORIES = [
-  { id: 'add', name: '发布', isAdd: true, avatar: null },
-  { id: '1', name: '你的故事', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' },
-  { id: '2', name: '光影日记', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100' },
-  { id: '3', name: '街头猎手', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
-  { id: '4', name: '风光控', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100' },
-];
-
 // 标签配置
 const TABS = [
   { key: 'following', label: '关注' },
@@ -57,13 +53,15 @@ const TABS = [
 ];
 
 // 筛选器选项
-const FILTER_DEVICES = ['全部设备', 'Sony A7M4', 'Canon R5', 'Nikon Z8', '富士 X-T5'];
-const FILTER_STYLES = ['全部风格', '长曝光', '大光圈', '黑白', 'HDR'];
-const FILTER_SCENES = ['全部场景', '城市', '人像', '风光', '街拍', '星空'];
+const FILTER_BRANDS = ['全部品牌', 'Sony', 'Canon', 'Nikon', '富士', 'Leica'];
+const FILTER_FOCAL = ['全部焦段', '广角(≤35mm)', '标准(35-85mm)', '长焦(≥85mm)'];
+const FILTER_APERTURE = ['全部光圈', '大光圈(≤f/2.8)', '中光圈(f/4-8)', '小光圈(≥f/11)'];
+const FILTER_SCENES = ['全部题材', '人像', '风光', '街拍', '建筑', '星空', '夜景'];
 
 export default function HomeScreen() {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const router = useSafeRouter();
   
   const [activeTab, setActiveTab] = useState('recommend');
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -72,11 +70,13 @@ export default function HomeScreen() {
   const [error, setError] = useState<string | null>(null);
   const [tabLayouts, setTabLayouts] = useState<{ [key: string]: { x: number; width: number } }>({});
   
-  // 筛选器状态
+  // 搜索和筛选状态
+  const [searchText, setSearchText] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState('全部设备');
-  const [selectedStyle, setSelectedStyle] = useState('全部风格');
-  const [selectedScene, setSelectedScene] = useState('全部场景');
+  const [selectedBrand, setSelectedBrand] = useState('全部品牌');
+  const [selectedFocal, setSelectedFocal] = useState('全部焦段');
+  const [selectedAperture, setSelectedAperture] = useState('全部光圈');
+  const [selectedScene, setSelectedScene] = useState('全部题材');
 
   // 获取照片数据
   const fetchPhotos = useCallback(async (isRefresh = false) => {
@@ -108,32 +108,6 @@ export default function HomeScreen() {
 
   useFocusEffect(useCallback(() => { fetchPhotos(); }, [fetchPhotos]));
 
-  // 处理点赞
-  const handleLike = async (photoId: number) => {
-    try {
-      await fetch(`${process.env.EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photoId}/like`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      fetchPhotos();
-    } catch (error) {
-      console.error('点赞失败:', error);
-    }
-  };
-
-  // 处理收藏
-  const handleFavorite = async (photoId: number) => {
-    try {
-      await fetch(`${process.env.EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photoId}/favorite`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      fetchPhotos();
-    } catch (error) {
-      console.error('收藏失败:', error);
-    }
-  };
-
   // 计算指示器位置
   const indicatorStyle = useMemo(() => {
     const layout = tabLayouts[activeTab];
@@ -142,28 +116,6 @@ export default function HomeScreen() {
     const left = layout.x + 16;
     return { left, width: textWidth };
   }, [activeTab, tabLayouts]);
-
-  // 渲染 Story 项
-  const renderStory = (story: typeof STORIES[0]) => {
-    if (story.isAdd) {
-      return (
-        <TouchableOpacity key={story.id} style={styles.storyItem}>
-          <View style={styles.storyAddBtn}>
-            <FontAwesome6 name="plus" size={20} color={TEXT_MUTED} />
-          </View>
-          <Text style={styles.storyName}>{story.name}</Text>
-        </TouchableOpacity>
-      );
-    }
-    return (
-      <TouchableOpacity key={story.id} style={styles.storyItem}>
-        <View style={styles.storyRing}>
-          <Image source={{ uri: story.avatar! }} style={styles.storyAvatar} />
-        </View>
-        <Text style={[styles.storyName, styles.storyNameActive]} numberOfLines={1}>{story.name}</Text>
-      </TouchableOpacity>
-    );
-  };
 
   // 渲染标签项
   const renderTab = (tab: typeof TABS[0]) => {
@@ -186,7 +138,7 @@ export default function HomeScreen() {
     );
   };
 
-  // 随机生成图片高度（瀑布流效果）
+  // 随机生成图片高度
   const getImageHeight = (index: number) => {
     const heights = [180, 220, 260, 200, 240, 280];
     return heights[index % heights.length];
@@ -204,50 +156,31 @@ export default function HomeScreen() {
     const distance = getDistance(index);
     
     return (
-      <TouchableOpacity key={photo.id} style={[styles.photoCard, { width: CARD_WIDTH }]} activeOpacity={0.9}>
-        <View style={{ position: 'relative' }}>
-          <Image source={{ uri: photo.image_url }} style={[styles.photoImage, { height: imageHeight }]} resizeMode="cover" />
-          <View style={[styles.photoOverlay, { height: 60 }]}>
-            <Text style={styles.photoTitle} numberOfLines={1}>{photo.title || '无标题'}</Text>
-            {photo.location_name && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                <FontAwesome6 name="location-dot" size={8} color="rgba(255,255,255,0.7)" />
-                <Text style={styles.photoLocation} numberOfLines={1}>{photo.location_name}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-
+      <TouchableOpacity
+        key={photo.id}
+        style={[styles.photoCard, { width: CARD_WIDTH }]}
+        activeOpacity={0.9}
+        onPress={() => router.push('/photo-detail', { id: photo.id })}
+      >
+        <Image source={{ uri: photo.image_url }} style={[styles.photoImage, { height: imageHeight }]} resizeMode="cover" />
         <View style={styles.cardContent}>
-          {/* EXIF 信息 */}
-          <View style={styles.cardExif}>
-            <FontAwesome6 name="camera" size={9} color={TEXT_MUTED} />
+          {/* 第一行：头像 + 标题 */}
+          <View style={styles.cardFirstRow}>
+            <Image
+              source={{ uri: photo.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}
+              style={styles.cardAvatar}
+            />
+            <Text style={styles.cardTitle} numberOfLines={1}>{photo.title || '无标题'}</Text>
+          </View>
+          {/* 第二行：硬核参数条 */}
+          <View style={styles.cardSecondRow}>
+            <FontAwesome6 name="camera" size={8} color={KLEIN_BLUE} />
             <Text style={styles.cardExifText}>{photo.camera_model || 'A7M4'}</Text>
             <Text style={styles.cardExifText}>|</Text>
             <Text style={styles.cardExifText}>{photo.focal_length || '50mm'}</Text>
             <Text style={styles.cardExifText}>|</Text>
-            <Text style={styles.cardExifText}>{photo.aperture || 'f/1.4'}</Text>
-          </View>
-          
-          <View style={styles.cardHeader}>
-            <Image source={{ uri: photo.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }} style={styles.cardAvatar} />
-            <Text style={styles.cardUsername} numberOfLines={1}>{photo.username || '匿名'}</Text>
-            <View style={styles.cardDistance}>
-              <FontAwesome6 name="location-arrow" size={8} color={KLEIN_BLUE} />
-              <Text style={styles.cardDistanceText}>{distance}</Text>
-            </View>
-          </View>
-          
-          <View style={styles.cardFooter}>
-            <View style={styles.cardStats}>
-              <TouchableOpacity style={styles.cardStat} onPress={() => handleLike(photo.id)}>
-                <FontAwesome6 name="heart" size={12} solid={photo.is_liked} color={photo.is_liked ? theme.error : TEXT_MUTED} />
-                <Text style={styles.cardStatText}>{photo.likes_count || 0}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cardStat} onPress={() => handleFavorite(photo.id)}>
-                <FontAwesome6 name="bookmark" size={12} solid={photo.is_favorited} color={photo.is_favorited ? KLEIN_BLUE : TEXT_MUTED} />
-              </TouchableOpacity>
-            </View>
+            <FontAwesome6 name="location-arrow" size={8} color={KLEIN_BLUE} />
+            <Text style={styles.cardDistanceText}>{distance}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -283,23 +216,35 @@ export default function HomeScreen() {
     </View>
   );
 
+  // 重置筛选器
+  const resetFilters = () => {
+    setSelectedBrand('全部品牌');
+    setSelectedFocal('全部焦段');
+    setSelectedAperture('全部光圈');
+    setSelectedScene('全部题材');
+  };
+
   return (
     <Screen backgroundColor={BACKGROUND_LIGHT} statusBarStyle="dark">
       <View style={styles.container}>
-        {/* ========== 顶部导航栏 ========== */}
-        <View style={styles.topNav}>
-          <Text style={styles.brandText}>同镜</Text>
-          <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterVisible(true)}>
-            <FontAwesome6 name="sliders" size={14} color={TEXT_SECONDARY} />
-            <Text style={styles.filterBtnText}>筛选</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ========== Stories ========== */}
-        <View style={styles.storiesSection}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storiesScrollContent}>
-            {STORIES.map(renderStory)}
-          </ScrollView>
+        {/* ========== 顶部搜索栏 ========== */}
+        <View style={styles.searchHeader}>
+          <View style={styles.searchRow}>
+            <View style={styles.searchBox}>
+              <FontAwesome6 name="magnifying-glass" size={16} color={TEXT_MUTED} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="搜索照片、机位、摄影师..."
+                placeholderTextColor={TEXT_MUTED}
+                value={searchText}
+                onChangeText={setSearchText}
+                returnKeyType="search"
+              />
+            </View>
+            <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterVisible(true)}>
+              <FontAwesome6 name="sliders" size={18} color={TEXT_SECONDARY} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* ========== 标签导航 ========== */}
@@ -344,30 +289,47 @@ export default function HomeScreen() {
           </View>
         </ScrollView>
 
-        {/* ========== 硬核筛选器面板 ========== */}
-        <Modal visible={filterVisible} transparent animationType="fade" onRequestClose={() => setFilterVisible(false)}>
-          <TouchableOpacity style={styles.filterPanel} activeOpacity={1} onPress={() => setFilterVisible(false)}>
-            <View style={styles.filterPanelContent}>
-              <Text style={styles.filterPanelTitle}>硬核筛选器</Text>
-              
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>设备</Text>
-                {renderFilterOptions(FILTER_DEVICES, selectedDevice, setSelectedDevice)}
+        {/* ========== 硬核筛选器侧边栏 ========== */}
+        <Modal visible={filterVisible} transparent animationType="slide" onRequestClose={() => setFilterVisible(false)}>
+          <TouchableOpacity style={styles.filterOverlay} activeOpacity={1} onPress={() => setFilterVisible(false)}>
+            <View style={styles.filterSidebar}>
+              {/* 头部 */}
+              <View style={styles.filterHeader}>
+                <Text style={styles.filterTitle}>高级筛选</Text>
+                <TouchableOpacity style={styles.filterCloseBtn} onPress={() => setFilterVisible(false)}>
+                  <FontAwesome6 name="xmark" size={16} color={TEXT_SECONDARY} />
+                </TouchableOpacity>
               </View>
               
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>风格</Text>
-                {renderFilterOptions(FILTER_STYLES, selectedStyle, setSelectedStyle)}
-              </View>
+              {/* 筛选内容 */}
+              <ScrollView style={styles.filterScroll} contentContainerStyle={styles.filterScrollContent}>
+                <View style={styles.filterSection}>
+                  <Text style={styles.filterSectionTitle}>相机品牌</Text>
+                  {renderFilterOptions(FILTER_BRANDS, selectedBrand, setSelectedBrand)}
+                </View>
+                <View style={styles.filterSection}>
+                  <Text style={styles.filterSectionTitle}>焦段</Text>
+                  {renderFilterOptions(FILTER_FOCAL, selectedFocal, setSelectedFocal)}
+                </View>
+                <View style={styles.filterSection}>
+                  <Text style={styles.filterSectionTitle}>光圈</Text>
+                  {renderFilterOptions(FILTER_APERTURE, selectedAperture, setSelectedAperture)}
+                </View>
+                <View style={styles.filterSection}>
+                  <Text style={styles.filterSectionTitle}>拍摄题材</Text>
+                  {renderFilterOptions(FILTER_SCENES, selectedScene, setSelectedScene)}
+                </View>
+              </ScrollView>
               
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>场景</Text>
-                {renderFilterOptions(FILTER_SCENES, selectedScene, setSelectedScene)}
+              {/* 底部按钮 */}
+              <View style={styles.filterFooter}>
+                <TouchableOpacity style={styles.filterResetBtn} onPress={resetFilters}>
+                  <Text style={styles.filterResetBtnText}>重置</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.filterApplyBtn} onPress={() => setFilterVisible(false)}>
+                  <Text style={styles.filterApplyBtnText}>应用筛选</Text>
+                </TouchableOpacity>
               </View>
-              
-              <TouchableOpacity style={styles.filterApplyBtn} onPress={() => setFilterVisible(false)}>
-                <Text style={styles.filterApplyBtnText}>应用筛选</Text>
-              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>

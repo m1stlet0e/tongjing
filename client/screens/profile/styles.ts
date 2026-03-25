@@ -1,140 +1,267 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
+
+export const KLEIN_BLUE = '#002FA7';
+export const CHAMPAGNE_GOLD = '#C9A96E';
+export const BACKGROUND_LIGHT = '#FAFAFA';
+export const CARD_WHITE = '#FFFFFF';
+export const TEXT_PRIMARY = '#1A1A1A';
+export const TEXT_SECONDARY = '#666666';
+export const TEXT_MUTED = '#999999';
+export const BORDER_LIGHT = '#EEEEEE';
+export const SUCCESS_GREEN = '#4CAF50';
+export const DARK_BG = '#0A0A0F';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: BACKGROUND_LIGHT,
     },
-    scrollContent: {
-      paddingBottom: 100,
+
+    // ========== 头部个人信息区 ==========
+    headerSection: {
+      backgroundColor: CARD_WHITE,
+      paddingTop: Platform.OS === 'web' ? Spacing.lg : Spacing.xl,
+      paddingBottom: Spacing.lg,
+      paddingHorizontal: Spacing.lg,
     },
-    header: {
-      backgroundColor: theme.primary,
-      paddingHorizontal: Spacing["2xl"],
-      paddingTop: Spacing["4xl"],
-      paddingBottom: Spacing["3xl"],
-      alignItems: 'center',
+    headerContent: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: Spacing.lg,
+    },
+    userInfo: {
+      flexDirection: 'row',
+      flex: 1,
     },
     avatar: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      borderWidth: 3,
-      borderColor: theme.accent,
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      marginRight: Spacing.md,
+    },
+    userTextInfo: {
+      flex: 1,
+      justifyContent: 'center',
     },
     username: {
-      color: '#FFFFFF',
-      fontSize: 22,
+      fontSize: 18,
       fontWeight: '600',
-      marginTop: Spacing.lg,
+      color: TEXT_PRIMARY,
+      marginBottom: 2,
     },
-    bio: {
-      color: 'rgba(255,255,255,0.8)',
-      fontSize: 13,
-      marginTop: Spacing.sm,
-      textAlign: 'center',
+    userLevel: {
+      fontSize: 11,
+      color: KLEIN_BLUE,
+      marginBottom: 4,
     },
-    statsRow: {
+    userBio: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+    },
+    editBtn: {
       flexDirection: 'row',
-      marginTop: Spacing.xl,
-      gap: Spacing["3xl"],
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: BORDER_LIGHT,
+    },
+    editBtnText: {
+      fontSize: 12,
+      color: KLEIN_BLUE,
+    },
+
+    // 统计数据条
+    statsBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingTop: Spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: BORDER_LIGHT,
     },
     statItem: {
       alignItems: 'center',
     },
-    statValue: {
-      color: '#FFFFFF',
+    statNum: {
       fontSize: 20,
-      fontWeight: '700',
+      fontWeight: '600',
+      color: TEXT_PRIMARY,
     },
     statLabel: {
-      color: 'rgba(255,255,255,0.7)',
       fontSize: 11,
+      color: TEXT_MUTED,
       marginTop: 2,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
     },
+
+    // ========== 通用Section ==========
     section: {
-      paddingHorizontal: Spacing["2xl"],
-      paddingTop: Spacing["2xl"],
+      marginTop: Spacing.lg,
+      paddingHorizontal: Spacing.lg,
     },
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: Spacing.lg,
+      marginBottom: Spacing.md,
     },
     sectionTitle: {
-      color: theme.textPrimary,
-      fontSize: 18,
-      fontWeight: '700',
-    },
-    seeAll: {
-      color: theme.primary,
-      fontSize: 13,
-    },
-    equipmentScroll: {
-      marginHorizontal: -Spacing["2xl"],
-    },
-    equipmentScrollContent: {
-      paddingHorizontal: Spacing["2xl"],
-      gap: Spacing.md,
-    },
-    equipmentCard: {
-      backgroundColor: theme.backgroundTertiary,
-      borderRadius: BorderRadius.lg,
-      padding: Spacing.lg,
-      minWidth: 140,
-    },
-    equipmentBrand: {
-      color: theme.primary,
-      fontSize: 11,
+      fontSize: 16,
       fontWeight: '600',
-      textTransform: 'uppercase',
-      letterSpacing: 1,
+      color: TEXT_PRIMARY,
     },
-    equipmentModel: {
-      color: theme.textPrimary,
-      fontSize: 14,
-      fontWeight: '600',
-      marginTop: Spacing.xs,
+    sectionMore: {
+      fontSize: 12,
+      color: KLEIN_BLUE,
     },
-    equipmentType: {
-      color: theme.textMuted,
-      fontSize: 11,
-      marginTop: 2,
-    },
-    photosGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+
+    // ========== 装备库 ==========
+    equipmentList: {
       gap: Spacing.sm,
     },
-    photoItem: {
-      width: '32%',
-      aspectRatio: 1,
-      borderRadius: BorderRadius.md,
+    equipmentCard: {
+      width: 110,
+      backgroundColor: CARD_WHITE,
+      borderRadius: 12,
+      padding: Spacing.md,
+      alignItems: 'center',
+    },
+    equipmentIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: 'rgba(0,47,167,0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    equipmentName: {
+      fontSize: 11,
+      color: TEXT_PRIMARY,
+      textAlign: 'center',
+    },
+    addEquipmentCard: {
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: BORDER_LIGHT,
+      backgroundColor: 'transparent',
+    },
+
+    // ========== 足迹地图 ==========
+    footprintCard: {
+      backgroundColor: CARD_WHITE,
+      borderRadius: 16,
       overflow: 'hidden',
     },
-    photoImage: {
+    footprintMap: {
+      height: 120,
+      backgroundColor: BACKGROUND_LIGHT,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    footprintMapText: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+      marginTop: Spacing.sm,
+    },
+    footprintCities: {
+      padding: Spacing.md,
+    },
+    footprintCitiesTitle: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: TEXT_SECONDARY,
+      marginBottom: Spacing.sm,
+    },
+    footprintCityList: {
+      gap: Spacing.xs,
+    },
+    footprintCityItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: Spacing.xs,
+    },
+    footprintCityIndex: {
+      width: 20,
+      fontSize: 12,
+      fontWeight: '600',
+      color: KLEIN_BLUE,
+    },
+    footprintCityName: {
+      flex: 1,
+      fontSize: 13,
+      color: TEXT_PRIMARY,
+    },
+    footprintCityCount: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+    },
+
+    // ========== 作品集网格 ==========
+    worksGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 2,
+    },
+    workItem: {
+      width: (SCREEN_WIDTH - Spacing.lg * 2 - 4) / 3,
+      aspectRatio: 1,
+    },
+    workImage: {
       width: '100%',
       height: '100%',
+      borderRadius: 4,
     },
-    footprintCard: {
-      backgroundColor: theme.backgroundTertiary,
-      borderRadius: BorderRadius.lg,
-      padding: Spacing.lg,
+    workOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: 4,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+    },
+    workMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    workLikes: {
+      fontSize: 10,
+      color: '#FFFFFF',
+    },
+
+    // ========== 加载与空状态 ==========
+    loadingState: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: Spacing['3xl'],
+    },
+    emptyState: {
+      alignItems: 'center',
+      paddingVertical: Spacing['3xl'],
+    },
+    emptyText: {
+      color: TEXT_MUTED,
+      fontSize: 14,
       marginTop: Spacing.md,
     },
-    footprintLocation: {
-      color: theme.textPrimary,
-      fontSize: 15,
-      fontWeight: '600',
+    emptyBtn: {
+      marginTop: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.lg,
+      backgroundColor: KLEIN_BLUE,
+      borderRadius: BorderRadius.full,
     },
-    footprintCount: {
-      color: theme.textSecondary,
-      fontSize: 12,
-      marginTop: 2,
+    emptyBtnText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '500',
     },
   });
 };

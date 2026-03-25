@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
 
 export const KLEIN_BLUE = '#002FA7';
@@ -20,243 +20,275 @@ export const createStyles = (theme: Theme) => {
       backgroundColor: BACKGROUND_LIGHT,
     },
 
-    // ========== 顶部Tab切换 ==========
-    topTabs: {
+    // ========== 标签导航 ========== 
+    tabsSection: {
       flexDirection: 'row',
       backgroundColor: CARD_WHITE,
       borderBottomWidth: 1,
       borderBottomColor: BORDER_LIGHT,
     },
-    topTab: {
+    tabItem: {
       flex: 1,
-      paddingVertical: Spacing.lg,
+      paddingVertical: Spacing.md,
       alignItems: 'center',
-    },
-    topTabActive: {
       borderBottomWidth: 2,
+      borderBottomColor: 'transparent',
+    },
+    tabItemActive: {
       borderBottomColor: KLEIN_BLUE,
     },
-    topTabText: {
-      fontSize: 15,
+    tabText: {
+      fontSize: 14,
       color: TEXT_MUTED,
       fontWeight: '400',
     },
-    topTabTextActive: {
-      fontSize: 15,
+    tabTextActive: {
+      fontSize: 14,
       color: TEXT_PRIMARY,
       fontWeight: '600',
     },
 
-    // ========== 内容区域 ==========
-    content: {
+    // ========== 加载状态 ==========
+    loadingState: {
       flex: 1,
-    },
-    scrollContent: {
-      padding: Spacing.lg,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: Spacing['3xl'],
     },
 
-    // ========== 天气提示卡 ==========
-    weatherCard: {
+    // ========== 我的计划 ========== 
+    plansList: {
+      gap: Spacing.md,
+    },
+    planCard: {
       backgroundColor: CARD_WHITE,
-      borderRadius: 12,
-      padding: Spacing.lg,
-      marginBottom: Spacing.lg,
+      borderRadius: 16,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+    },
+    planHeader: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginBottom: Spacing.md,
     },
-    weatherIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: '#E3F2FD',
+    planIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(0,47,167,0.1)',
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: Spacing.md,
     },
-    weatherInfo: {
-      flex: 1,
-    },
-    weatherTitle: {
-      fontSize: 14,
+    planTitle: {
+      fontSize: 16,
       fontWeight: '600',
       color: TEXT_PRIMARY,
       marginBottom: 2,
     },
+    planMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    planMetaText: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+      marginLeft: 4,
+    },
+    
+    // 天气提示
+    weatherBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255,152,0,0.08)',
+      borderRadius: 12,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+    },
+    weatherInfo: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    weatherText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: TEXT_PRIMARY,
+    },
     weatherDesc: {
       fontSize: 12,
       color: TEXT_SECONDARY,
+      marginTop: 2,
     },
-    weatherAction: {
-      paddingVertical: Spacing.sm,
-      paddingHorizontal: Spacing.md,
-      backgroundColor: SUCCESS_GREEN,
-      borderRadius: BorderRadius.full,
-    },
-    weatherActionText: {
-      color: '#FFFFFF',
-      fontSize: 12,
-      fontWeight: '500',
-    },
-
-    // ========== 计划卡片 ==========
-    planCard: {
-      backgroundColor: CARD_WHITE,
+    
+    // AI建议
+    aiSuggestCard: {
+      backgroundColor: 'rgba(0,47,167,0.05)',
       borderRadius: 12,
-      marginBottom: Spacing.md,
-      overflow: 'hidden',
-    },
-    planImage: {
-      width: '100%',
-      height: 140,
-    },
-    planContent: {
       padding: Spacing.md,
+      marginBottom: Spacing.md,
     },
-    planHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: Spacing.sm,
-    },
-    planTitle: {
-      fontSize: 15,
-      fontWeight: '600',
-      color: TEXT_PRIMARY,
-      flex: 1,
-    },
-    planStatus: {
-      paddingVertical: 2,
-      paddingHorizontal: Spacing.sm,
-      borderRadius: BorderRadius.full,
-      backgroundColor: '#FFF3E0',
-      marginLeft: Spacing.sm,
-    },
-    planStatusText: {
-      fontSize: 10,
-      color: '#F57C00',
-      fontWeight: '500',
-    },
-    planLocation: {
+    aiSuggestHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
       marginBottom: Spacing.sm,
+      gap: Spacing.xs,
     },
-    planLocationText: {
+    aiSuggestTitle: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: KLEIN_BLUE,
+    },
+    aiSuggestText: {
       fontSize: 12,
       color: TEXT_SECONDARY,
+      lineHeight: 18,
     },
-    planExif: {
+    
+    // 操作按钮
+    planActions: {
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.md,
+      justifyContent: 'flex-end',
+      gap: Spacing.sm,
+      marginTop: Spacing.sm,
     },
-    planExifItem: {
+    planActionBtn: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      borderRadius: BorderRadius.full,
+      backgroundColor: BACKGROUND_LIGHT,
     },
-    planExifText: {
-      fontSize: 11,
-      color: TEXT_MUTED,
+    planActionBtnText: {
+      fontSize: 12,
+      color: TEXT_SECONDARY,
+      marginLeft: 4,
     },
 
-    // ========== 挑战卡片 ==========
+    // ========== 同款挑战 ==========
+    challengesList: {
+      gap: Spacing.lg,
+    },
     challengeCard: {
       backgroundColor: CARD_WHITE,
-      borderRadius: 12,
-      marginBottom: Spacing.md,
+      borderRadius: 16,
       overflow: 'hidden',
     },
-    challengeBanner: {
-      height: 120,
+    challengeCover: {
       position: 'relative',
+      height: 160,
     },
-    challengeBannerImage: {
+    challengeCoverImage: {
       width: '100%',
       height: '100%',
     },
-    challengeOverlay: {
+    challengeBadge: {
       position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      padding: Spacing.md,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      top: Spacing.md,
+      right: Spacing.md,
+      paddingVertical: 4,
+      paddingHorizontal: Spacing.md,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      borderRadius: BorderRadius.full,
     },
-    challengeTag: {
-      fontSize: 10,
-      color: CHAMPAGNE_GOLD,
-      fontWeight: '600',
-      letterSpacing: 1,
-      marginBottom: 4,
-    },
-    challengeTitle: {
-      fontSize: 16,
-      fontWeight: '600',
+    challengeBadgeText: {
+      fontSize: 11,
       color: '#FFFFFF',
+      fontWeight: '500',
     },
     challengeContent: {
       padding: Spacing.md,
     },
-    challengeStats: {
+    challengeTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: TEXT_PRIMARY,
+      marginBottom: Spacing.sm,
+    },
+    challengeDesc: {
+      fontSize: 13,
+      color: TEXT_SECONDARY,
+      lineHeight: 18,
+      marginBottom: Spacing.md,
+    },
+    participantsRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      marginBottom: Spacing.md,
     },
-    challengeParticipants: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.sm,
+    avatarStack: {
+      width: 48,
+      height: 24,
+      position: 'relative',
     },
-    participantAvatars: {
-      flexDirection: 'row',
-    },
-    participantAvatar: {
+    avatarStackItem: {
+      position: 'absolute',
       width: 24,
       height: 24,
       borderRadius: 12,
+      backgroundColor: BORDER_LIGHT,
+      justifyContent: 'center',
+      alignItems: 'center',
       borderWidth: 2,
       borderColor: CARD_WHITE,
-      marginLeft: -8,
     },
-    participantAvatarFirst: {
-      marginLeft: 0,
-    },
-    participantCount: {
+    participantsText: {
       fontSize: 12,
-      color: TEXT_SECONDARY,
+      color: TEXT_MUTED,
+      marginLeft: Spacing.sm,
     },
-    challengeJoinBtn: {
-      paddingVertical: Spacing.sm,
-      paddingHorizontal: Spacing.lg,
+    hotItemsRow: {
+      flexDirection: 'row',
+      gap: 4,
+    },
+    hotItemThumb: {
+      width: 60,
+      height: 60,
+      borderRadius: 8,
+    },
+    joinBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      paddingVertical: Spacing.md,
       backgroundColor: KLEIN_BLUE,
-      borderRadius: BorderRadius.full,
+      borderRadius: BorderRadius.lg,
+      marginTop: Spacing.md,
     },
-    challengeJoinBtnText: {
+    joinBtnText: {
+      fontSize: 14,
+      fontWeight: '600',
       color: '#FFFFFF',
-      fontSize: 12,
-      fontWeight: '500',
     },
 
-    // ========== 空状态 ==========
+    // ========== 空状态 ========== 
     emptyState: {
       alignItems: 'center',
-      paddingVertical: Spacing['5xl'],
+      paddingVertical: Spacing['3xl'],
     },
     emptyIcon: {
-      marginBottom: Spacing.lg,
-    },
-    emptyTitle: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: TEXT_PRIMARY,
-      marginBottom: Spacing.sm,
+      marginBottom: Spacing.md,
     },
     emptyText: {
       fontSize: 14,
       color: TEXT_MUTED,
       textAlign: 'center',
+    },
+    emptyBtn: {
+      marginTop: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.lg,
+      backgroundColor: KLEIN_BLUE,
+      borderRadius: BorderRadius.full,
+    },
+    emptyBtnText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '500',
     },
   });
 };

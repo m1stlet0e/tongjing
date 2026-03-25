@@ -1,354 +1,205 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  Image, 
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  RefreshControl,
   ActivityIndicator,
-  Modal,
-  TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { useTheme } from '@/hooks/useTheme';
+import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { Screen } from '@/components/Screen';
-import { useAuth } from '@/contexts/AuthContext';
-import { createStyles } from './styles';
-import { apiGet } from '@/utils/api';
-
-interface Equipment {
-  brand: string;
-  model: string;
-  type: string;
-  specs: any;
-}
+import { createStyles, KLEIN_BLUE, CHAMPAGNE_GOLD, BACKGROUND_LIGHT, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, CARD_WHITE, BORDER_LIGHT, DARK_BG } from './styles';
 
 export default function ProfileScreen() {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useSafeRouter();
-  const { user: authUser, isAuthenticated, logout } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ works: 0, favorites: 0, following: 0, followers: 0 });
+  const [equipment, setEquipment] = useState<any[]>([]);
+  const [recentWorks, setRecentWorks] = useState<any[]>([]);
 
-  const [photos, setPhotos] = useState<any[]>([]);
-  const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [footprint, setFootprint] = useState<any[]>([]);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // 模拟数据
+  const mockUser = useMemo(() => ({
+    id: 1,
+    username: '光影猎人',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
+    bio: '城市风光 · 建筑摄影 · 索尼用户',
+    level: 'Lv.8 摄影达人',
+  }), []);
 
-  const fetchData = useCallback(async () => {
-    if (!isAuthenticated || !authUser) return;
+  const mockStats = useMemo(() => ({ works: 128, favorites: 256, following: 89, followers: 1024 }), []);
+
+  const mockEquipment = useMemo(() => [
+    { id: 1, type: 'camera', name: 'Sony A7M4', icon: 'camera' },
+    { id: 2, type: 'lens', name: 'FE 24-70mm F2.8 GM', icon: 'aperture' },
+    { id: 3, type: 'lens', name: 'FE 50mm F1.4 GM', icon: 'aperture' },
+    { id: 4, type: 'tripod', name: 'Gitzo GT3543LS', icon: 'mountain-sun' },
+  ], []);
+
+  const mockWorks = useMemo(() => [
+    { id: 1, image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200', likes: 89, location: '上海·外滩' },
+    { id: 2, image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200', likes: 156, location: '杭州·西湖' },
+    { id: 3, image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=200', likes: 234, location: '北京·故宫' },
+    { id: 4, image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=200', likes: 312, location: '西藏·珠峰' },
+    { id: 5, image: 'https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=200', likes: 78, location: '上海·陆家嘴' },
+    { id: 6, image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200', likes: 198, location: '云南·大理' },
+  ], []);
+
+  const mockFootprint = useMemo(() => [
+    { id: 1, city: '上海', count: 45 },
+    { id: 2, city: '杭州', count: 32 },
+    { id: 3, city: '北京', count: 28 },
+    { id: 4, city: '成都', count: 15 },
+    { id: 5, city: '西藏', count: 8 },
+  ], []);
+
+  // 获取数据
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     
-    try {
-      // 获取用户照片
-      /**
-       * 服务端文件：server/src/routes/users.ts
-       * 接口：GET /api/v1/users/:id/photos
-       */
-      const photosResponse = await apiGet(`/api/v1/users/${authUser.id}/photos`);
-      const photosResult = await photosResponse.json();
-      if (photosResult.success) {
-        setPhotos(photosResult.data.photos);
-      }
+    setTimeout(() => {
+      setStats(mockStats);
+      setEquipment(mockEquipment);
+      setRecentWorks(mockWorks);
+      setLoading(false);
+      setRefreshing(false);
+    }, 500);
+  }, [mockStats, mockEquipment, mockWorks]);
 
-      // 获取用户装备
-      /**
-       * 服务端文件：server/src/routes/equipment.ts
-       * 接口：GET /api/v1/equipment/user/:userId
-       */
-      const equipmentResponse = await apiGet(`/api/v1/equipment/user/${authUser.id}`);
-      const equipmentResult = await equipmentResponse.json();
-      if (equipmentResult.success) {
-        setEquipment(equipmentResult.data.equipment);
-      }
-
-      // 获取用户足迹
-      /**
-       * 服务端文件：server/src/routes/users.ts
-       * 接口：GET /api/v1/users/:id/footprint
-       */
-      const footprintResponse = await apiGet(`/api/v1/users/${authUser.id}/footprint`);
-      const footprintResult = await footprintResponse.json();
-      if (footprintResult.success) {
-        setFootprint(footprintResult.data);
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
-  }, [isAuthenticated, authUser]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [fetchData])
-  );
-
-  const handleLogout = useCallback(async () => {
-    try {
-      setIsLoggingOut(true);
-      await logout();
-      setShowLogoutModal(false);
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setIsLoggingOut(false);
-    }
-  }, [logout]);
-
-  // 未登录状态
-  if (!isAuthenticated) {
-    return (
-      <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={{ alignItems: 'center' }}
-            onPress={() => router.push('/login')}
-            activeOpacity={0.7}
-          >
-            <View
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                backgroundColor: theme.backgroundTertiary,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderWidth: 3,
-                borderColor: theme.border,
-              }}
-            >
-              <FontAwesome6 name="user" size={32} color={theme.textMuted} />
-            </View>
-            <Text style={[styles.username, { marginTop: 16 }]}>点击登录</Text>
-            <Text style={styles.bio}>登录后查看个人中心</Text>
-          </TouchableOpacity>
-        </View>
-      </Screen>
-    );
-  }
+  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   return (
-    <Screen backgroundColor={theme.backgroundRoot} statusBarStyle="light">
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* 用户信息头部 */}
-        <View style={styles.header}>
-          {authUser && (
-            <>
-              <TouchableOpacity activeOpacity={0.8}>
-                <Image source={{ uri: authUser.avatar_url }} style={styles.avatar} />
+    <Screen backgroundColor={BACKGROUND_LIGHT} statusBarStyle="dark">
+      <View style={styles.container}>
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} tintColor={KLEIN_BLUE} colors={[KLEIN_BLUE]} />
+          }
+        >
+          {/* ========== 头部个人信息 ========== */}
+          <View style={styles.headerSection}>
+            <View style={styles.headerContent}>
+              {/* 左侧：头像 + 信息 */}
+              <View style={styles.userInfo}>
+                <Image source={{ uri: mockUser.avatar }} style={styles.avatar} />
+                <View style={styles.userTextInfo}>
+                  <Text style={styles.username}>{mockUser.username}</Text>
+                  <Text style={styles.userLevel}>{mockUser.level}</Text>
+                  <Text style={styles.userBio}>{mockUser.bio}</Text>
+                </View>
+              </View>
+              {/* 右侧：编辑按钮 */}
+              <TouchableOpacity style={styles.editBtn}>
+                <FontAwesome6 name="pencil" size={14} color={KLEIN_BLUE} />
+                <Text style={styles.editBtnText}>编辑资料</Text>
               </TouchableOpacity>
-              <Text style={styles.username}>{authUser.username}</Text>
-              {authUser.bio && <Text style={styles.bio}>{authUser.bio}</Text>}
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{photos.length}</Text>
-                  <Text style={styles.statLabel}>作品</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>0</Text>
-                  <Text style={styles.statLabel}>粉丝</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>0</Text>
-                  <Text style={styles.statLabel}>关注</Text>
-                </View>
-              </View>
-            </>
-          )}
-        </View>
-
-        {/* 我的装备库 */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>我的装备库</Text>
-            <TouchableOpacity activeOpacity={0.7}>
-              <Text style={styles.seeAll}>管理</Text>
-            </TouchableOpacity>
-          </View>
-          <View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.equipmentScroll}
-              contentContainerStyle={styles.equipmentScrollContent}
-            >
-              {equipment.length > 0 ? (
-                equipment.map((item, index) => (
-                  <View key={index} style={styles.equipmentCard}>
-                    <Text style={styles.equipmentBrand}>{item.brand}</Text>
-                    <Text style={styles.equipmentModel}>{item.model}</Text>
-                    <Text style={styles.equipmentType}>
-                      {item.type === 'camera' ? '相机' : '镜头'}
-                    </Text>
-                  </View>
-                ))
-              ) : (
-                <View style={[styles.equipmentCard, { justifyContent: 'center' }]}>
-                  <Text style={{ color: theme.textMuted, fontSize: 13 }}>暂无装备</Text>
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-
-        {/* 我的作品集 */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>我的作品</Text>
-            <TouchableOpacity activeOpacity={0.7}>
-              <Text style={styles.seeAll}>查看全部</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.photosGrid}>
-            {photos.slice(0, 6).map((photo) => (
-              <TouchableOpacity
-                key={photo.id}
-                style={styles.photoItem}
-                onPress={() => router.push('/photo-detail', { id: photo.id })}
-                activeOpacity={0.8}
-              >
-                <Image source={{ uri: photo.image_url }} style={styles.photoImage} />
-              </TouchableOpacity>
-            ))}
-            {photos.length === 0 && (
-              <View style={{ paddingVertical: 20, alignItems: 'center', width: '100%' }}>
-                <Text style={{ color: theme.textMuted, fontSize: 13 }}>暂无作品</Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* 拍摄足迹 */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>拍摄足迹</Text>
-            <TouchableOpacity activeOpacity={0.7}>
-              <Text style={styles.seeAll}>地图查看</Text>
-            </TouchableOpacity>
-          </View>
-          {footprint.length > 0 ? (
-            footprint.slice(0, 3).map((location, index) => (
-              <View key={index} style={styles.footprintCard}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <FontAwesome6 name="location-dot" size={14} color={theme.primary} />
-                  <Text style={styles.footprintLocation}> {location.location_name}</Text>
-                </View>
-                <Text style={styles.footprintCount}>{location.photo_count} 张照片</Text>
-              </View>
-            ))
-          ) : (
-            <View style={[styles.footprintCard, { alignItems: 'center' }]}>
-              <Text style={{ color: theme.textMuted, fontSize: 13 }}>暂无足迹</Text>
             </View>
-          )}
-        </View>
+            
+            {/* 数据统计 */}
+            <View style={styles.statsBar}>
+              <TouchableOpacity style={styles.statItem}>
+                <Text style={styles.statNum}>{stats.works}</Text>
+                <Text style={styles.statLabel}>作品</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.statItem}>
+                <Text style={styles.statNum}>{stats.favorites}</Text>
+                <Text style={styles.statLabel}>收藏</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.statItem}>
+                <Text style={styles.statNum}>{stats.following}</Text>
+                <Text style={styles.statLabel}>关注</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.statItem}>
+                <Text style={styles.statNum}>{stats.followers}</Text>
+                <Text style={styles.statLabel}>粉丝</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        {/* 退出登录按钮 */}
-        <View style={[styles.section, { marginTop: 20 }]}>
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.backgroundTertiary,
-              paddingVertical: 16,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-            onPress={() => setShowLogoutModal(true)}
-            disabled={isLoggingOut}
-            activeOpacity={0.7}
-          >
-            {isLoggingOut ? (
-              <ActivityIndicator size="small" color={theme.error} />
-            ) : (
-              <>
-                <FontAwesome6 name="right-from-bracket" size={16} color={theme.error} style={{ marginRight: 8 }} />
-                <Text style={{ color: theme.error, fontSize: 15, fontWeight: '500' }}>退出登录</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+          {/* ========== 装备库 ========== */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>装备库</Text>
+              <TouchableOpacity><Text style={styles.sectionMore}>管理</Text></TouchableOpacity>
+            </View>
+            <View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.equipmentList}>
+                {equipment.map((item) => (
+                  <View key={item.id} style={styles.equipmentCard}>
+                    <View style={styles.equipmentIcon}>
+                      <FontAwesome6 name={item.icon} size={20} color={KLEIN_BLUE} />
+                    </View>
+                    <Text style={styles.equipmentName} numberOfLines={1}>{item.name}</Text>
+                  </View>
+                ))}
+                {/* 添加装备 */}
+                <TouchableOpacity style={[styles.equipmentCard, styles.addEquipmentCard]}>
+                  <FontAwesome6 name="plus" size={20} color={TEXT_MUTED} />
+                  <Text style={[styles.equipmentName, { color: TEXT_MUTED }]}>添加装备</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
 
-        {/* 版本信息 */}
-        <View style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 40 }}>
-          <Text style={{ color: theme.textMuted, fontSize: 11 }}>同镜 v1.0.0</Text>
-        </View>
-      </ScrollView>
-
-      {/* 退出登录确认弹窗 */}
-      <Modal
-        visible={showLogoutModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLogoutModal(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setShowLogoutModal(false)}>
-          <View style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-            <TouchableWithoutFeedback>
-              <View style={{
-                backgroundColor: theme.backgroundDefault,
-                width: 280,
-                padding: 24,
-                alignItems: 'center',
-              }}>
-                <FontAwesome6 name="right-from-bracket" size={32} color={theme.error} style={{ marginBottom: 16 }} />
-                <Text style={{
-                  color: theme.textPrimary,
-                  fontSize: 18,
-                  fontWeight: '600',
-                  marginBottom: 8,
-                }}>
-                  退出登录
-                </Text>
-                <Text style={{
-                  color: theme.textSecondary,
-                  fontSize: 14,
-                  textAlign: 'center',
-                  marginBottom: 24,
-                }}>
-                  确定要退出当前账号吗？
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <TouchableOpacity
-                    style={{
-                      flex: 1,
-                      paddingVertical: 12,
-                      backgroundColor: theme.backgroundTertiary,
-                      alignItems: 'center',
-                    }}
-                    onPress={() => setShowLogoutModal(false)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={{ color: theme.textPrimary, fontSize: 15 }}>取消</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={{
-                      flex: 1,
-                      paddingVertical: 12,
-                      backgroundColor: theme.error,
-                      alignItems: 'center',
-                    }}
-                    onPress={handleLogout}
-                    disabled={isLoggingOut}
-                    activeOpacity={0.7}
-                  >
-                    {isLoggingOut ? (
-                      <ActivityIndicator size="small" color="#FFFFFF" />
-                    ) : (
-                      <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '500' }}>退出</Text>
-                    )}
-                  </TouchableOpacity>
+          {/* ========== 足迹地图 ========== */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>足迹地图</Text>
+              <TouchableOpacity><Text style={styles.sectionMore}>查看全部</Text></TouchableOpacity>
+            </View>
+            <View style={styles.footprintCard}>
+              <View style={styles.footprintMap}>
+                <FontAwesome6 name="map-location-dot" size={32} color={TEXT_MUTED} />
+                <Text style={styles.footprintMapText}>查看足迹地图</Text>
+              </View>
+              <View style={styles.footprintCities}>
+                <Text style={styles.footprintCitiesTitle}>最近拍摄城市</Text>
+                <View style={styles.footprintCityList}>
+                  {mockFootprint.slice(0, 5).map((city, index) => (
+                    <View key={city.id} style={styles.footprintCityItem}>
+                      <Text style={styles.footprintCityIndex}>{index + 1}</Text>
+                      <Text style={styles.footprintCityName}>{city.city}</Text>
+                      <Text style={styles.footprintCityCount}>{city.count}张</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
-            </TouchableWithoutFeedback>
+            </View>
           </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+
+          {/* ========== 我的作品集 ========== */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>我的作品</Text>
+              <TouchableOpacity><Text style={styles.sectionMore}>全部</Text></TouchableOpacity>
+            </View>
+            <View style={styles.worksGrid}>
+              {recentWorks.map((work) => (
+                <TouchableOpacity key={work.id} style={styles.workItem} onPress={() => router.push('/photo-detail', { id: work.id })}>
+                  <Image source={{ uri: work.image }} style={styles.workImage} />
+                  <View style={styles.workOverlay}>
+                    <View style={styles.workMeta}>
+                      <FontAwesome6 name="heart" size={10} color="#FFFFFF" />
+                      <Text style={styles.workLikes}>{work.likes}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </View>
     </Screen>
   );
 }

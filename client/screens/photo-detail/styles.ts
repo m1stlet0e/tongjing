@@ -1,150 +1,313 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
+
+export const KLEIN_BLUE = '#002FA7';
+export const CHAMPAGNE_GOLD = '#C9A96E';
+export const BACKGROUND_LIGHT = '#FAFAFA';
+export const CARD_WHITE = '#FFFFFF';
+export const TEXT_PRIMARY = '#1A1A1A';
+export const TEXT_SECONDARY = '#666666';
+export const TEXT_MUTED = '#999999';
+export const BORDER_LIGHT = '#EEEEEE';
+export const SUCCESS_GREEN = '#4CAF50';
+export const DARK_BG = '#0A0A0F';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: DARK_BG,
     },
-    scrollContent: {
-      paddingBottom: 100,
+
+    // ========== 上半屏：全屏大图 ==========  
+    imageSection: {
+      position: 'relative',
     },
-    image: {
+    fullImage: {
       width: '100%',
-      aspectRatio: 4 / 3,
+      height: Dimensions.get('window').height * 0.55,
     },
-    content: {
-      padding: Spacing["2xl"],
+    imageOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      paddingTop: Platform.OS === 'web' ? Spacing.lg : Spacing.xl,
+      paddingHorizontal: Spacing.lg,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
-    header: {
+    backBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    imageActions: {
+      flexDirection: 'row',
+      gap: Spacing.sm,
+    },
+    imageActionBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    // ========== 下半屏：滑动面板 ==========
+    detailPanel: {
+      flex: 1,
+      backgroundColor: CARD_WHITE,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      marginTop: -24,
+    },
+    panelHandle: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: BORDER_LIGHT,
+      alignSelf: 'center',
+      marginTop: Spacing.md,
+      marginBottom: Spacing.sm,
+    },
+    panelScroll: {
+      flex: 1,
+    },
+    panelContent: {
+      padding: Spacing.lg,
+    },
+
+    // 作者与文案区
+    authorSection: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: Spacing.xl,
+      marginBottom: Spacing.lg,
     },
-    avatar: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
+    authorAvatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      marginRight: Spacing.md,
     },
-    userInfo: {
+    authorInfo: {
       flex: 1,
-      marginLeft: Spacing.lg,
     },
-    username: {
-      color: theme.textPrimary,
+    authorName: {
       fontSize: 16,
       fontWeight: '600',
+      color: TEXT_PRIMARY,
     },
-    location: {
-      color: theme.textSecondary,
-      fontSize: 13,
+    authorMeta: {
+      fontSize: 12,
+      color: TEXT_MUTED,
       marginTop: 2,
     },
-    title: {
-      color: theme.textPrimary,
-      fontSize: 24,
-      fontWeight: '700',
-      marginBottom: Spacing.md,
+    followBtn: {
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.lg,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: KLEIN_BLUE,
     },
-    description: {
-      color: theme.textSecondary,
-      fontSize: 15,
-      lineHeight: 22,
-      marginBottom: Spacing.xl,
-    },
-    section: {
-      marginBottom: Spacing.xl,
-    },
-    sectionTitle: {
-      color: theme.textPrimary,
-      fontSize: 14,
-      fontWeight: '600',
-      marginBottom: Spacing.md,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-    },
-    exifCard: {
-      backgroundColor: theme.backgroundTertiary,
-      borderRadius: BorderRadius.lg,
-      padding: Spacing.lg,
-    },
-    exifRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: Spacing.lg,
-    },
-    exifItem: {
-      width: '48%',
-    },
-    exifLabel: {
-      color: theme.textMuted,
-      fontSize: 11,
-      marginBottom: 2,
-    },
-    exifValue: {
-      color: theme.textPrimary,
-      fontSize: 14,
+    followBtnText: {
+      fontSize: 13,
       fontWeight: '500',
+      color: KLEIN_BLUE,
     },
-    tipsCard: {
-      backgroundColor: theme.backgroundTertiary,
-      borderRadius: BorderRadius.lg,
-      padding: Spacing.lg,
+
+    // 标题与描述
+    photoTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: TEXT_PRIMARY,
+      marginBottom: Spacing.sm,
     },
-    tipsText: {
-      color: theme.textSecondary,
+    photoDescription: {
       fontSize: 14,
+      color: TEXT_SECONDARY,
+      lineHeight: 22,
+      marginBottom: Spacing.lg,
+    },
+    
+    // 拍摄Tips
+    tipsCard: {
+      backgroundColor: 'rgba(0,47,167,0.05)',
+      borderRadius: 12,
+      padding: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    tipsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+      gap: Spacing.sm,
+    },
+    tipsTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: KLEIN_BLUE,
+    },
+    tipsContent: {
+      fontSize: 13,
+      color: TEXT_SECONDARY,
       lineHeight: 20,
     },
-    tagsContainer: {
+
+    // EXIF参数仪表盘
+    exifDashboard: {
+      backgroundColor: BACKGROUND_LIGHT,
+      borderRadius: 16,
+      padding: Spacing.lg,
+      marginBottom: Spacing.lg,
+    },
+    exifDashboardTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: TEXT_PRIMARY,
+      marginBottom: Spacing.md,
+    },
+    exifGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing.md,
+    },
+    exifGridItem: {
+      width: '47%',
+      alignItems: 'center',
+      backgroundColor: CARD_WHITE,
+      borderRadius: 12,
+      padding: Spacing.md,
+    },
+    exifGridIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(0,47,167,0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    exifGridLabel: {
+      fontSize: 10,
+      color: TEXT_MUTED,
+      marginBottom: 2,
+    },
+    exifGridValue: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: TEXT_PRIMARY,
+      textAlign: 'center',
+    },
+
+    // 机位地图卡片
+    locationCard: {
+      backgroundColor: BACKGROUND_LIGHT,
+      borderRadius: 16,
+      overflow: 'hidden',
+      marginBottom: Spacing.lg,
+    },
+    locationMiniMap: {
+      height: 120,
+      backgroundColor: BORDER_LIGHT,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    locationMiniMapText: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+    },
+    locationInfo: {
+      padding: Spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    locationName: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    locationNameText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: TEXT_PRIMARY,
+    },
+    navigateBtn: {
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      backgroundColor: KLEIN_BLUE,
+      borderRadius: BorderRadius.full,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    navigateBtnText: {
+      fontSize: 12,
+      color: '#FFFFFF',
+      fontWeight: '500',
+    },
+
+    // 标签
+    tagsRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: Spacing.sm,
+      marginBottom: Spacing.xl,
     },
     tag: {
-      backgroundColor: theme.backgroundTertiary,
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.sm,
+      paddingVertical: Spacing.xs,
+      paddingHorizontal: Spacing.md,
+      backgroundColor: BACKGROUND_LIGHT,
       borderRadius: BorderRadius.full,
     },
     tagText: {
-      color: theme.textSecondary,
       fontSize: 12,
+      color: TEXT_SECONDARY,
     },
-    footer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: theme.backgroundRoot,
+
+    // ========== 底部悬浮操作栏 ==========
+    bottomBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Spacing.lg,
+      paddingBottom: Spacing.xl,
+      backgroundColor: CARD_WHITE,
       borderTopWidth: 1,
-      borderTopColor: theme.borderLight,
-      paddingHorizontal: Spacing["2xl"],
-      paddingVertical: Spacing.lg,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.xl,
+      borderTopColor: BORDER_LIGHT,
+      gap: Spacing.lg,
     },
-    statItem: {
-      flexDirection: 'row',
+    statBtn: {
       alignItems: 'center',
+    },
+    statBtnIcon: {
+      marginBottom: 2,
+    },
+    statBtnText: {
+      fontSize: 10,
+      color: TEXT_MUTED,
+    },
+    planBtn: {
+      flex: 1,
+      paddingVertical: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      backgroundColor: KLEIN_BLUE,
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'center',
       gap: Spacing.sm,
     },
-    statText: {
-      color: theme.textSecondary,
-      fontSize: 14,
-    },
-    actionButton: {
-      flex: 1,
-      backgroundColor: theme.primary,
-      paddingVertical: Spacing.lg,
-      alignItems: 'center',
-    },
-    actionButtonText: {
-      color: '#FFFFFF',
-      fontSize: 14,
+    planBtnText: {
+      fontSize: 15,
       fontWeight: '600',
-      letterSpacing: 1,
+      color: '#FFFFFF',
     },
   });
 };

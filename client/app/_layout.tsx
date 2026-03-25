@@ -5,10 +5,8 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="photo-detail" />
-        <Stack.Screen name="location-photos" />
+        <Stack.Screen name="photo-detail" options={{ animation: 'slide_from_bottom' }} />
       </Stack>
     </AuthProvider>
   );

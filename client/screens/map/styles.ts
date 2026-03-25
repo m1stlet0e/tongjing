@@ -1,176 +1,253 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
+
+export const KLEIN_BLUE = '#002FA7';
+export const CHAMPAGNE_GOLD = '#C9A96E';
+export const BACKGROUND_LIGHT = '#FAFAFA';
+export const CARD_WHITE = '#FFFFFF';
+export const TEXT_PRIMARY = '#1A1A1A';
+export const TEXT_SECONDARY = '#666666';
+export const TEXT_MUTED = '#999999';
+export const BORDER_LIGHT = '#EEEEEE';
+export const DARK_BG = '#0A0A0F';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
     },
+
+    // ========== 地图层 ==========
     mapContainer: {
       flex: 1,
-      backgroundColor: theme.backgroundTertiary,
-    },
-    map: {
-      flex: 1,
+      backgroundColor: '#E8E8E8',
     },
     mapPlaceholder: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: '#E8E8E8',
     },
     mapPlaceholderText: {
-      color: theme.textSecondary,
+      color: TEXT_MUTED,
       fontSize: 14,
       marginTop: Spacing.md,
     },
-    header: {
+
+    // ========== 顶部悬浮控件 ==========
+    topWidgets: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
-      paddingHorizontal: Spacing["2xl"],
-      paddingTop: Spacing["4xl"],
-      paddingBottom: Spacing.xl,
-      backgroundColor: theme.backgroundRoot,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
+      paddingTop: Platform.OS === 'web' ? Spacing.lg : Spacing.xl,
+      paddingHorizontal: Spacing.lg,
+      zIndex: 10,
     },
-    title: {
-      color: theme.textPrimary,
-      fontSize: 24,
-      fontWeight: '700',
+    
+    // AI环境预测条
+    aiPredictBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: CARD_WHITE,
+      borderRadius: BorderRadius.lg,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      marginBottom: Spacing.md,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 4,
     },
-    subtitle: {
-      color: theme.textSecondary,
+    aiPredictIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: '#FFF8E1',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: Spacing.sm,
+    },
+    aiPredictText: {
+      flex: 1,
       fontSize: 12,
-      marginTop: 4,
+      color: TEXT_PRIMARY,
+      lineHeight: 16,
     },
-    spotsList: {
+    aiPredictHighlight: {
+      color: KLEIN_BLUE,
+      fontWeight: '600',
+    },
+
+    // 搜索栏
+    mapSearchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: CARD_WHITE,
+      borderRadius: BorderRadius.lg,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    mapSearchInput: {
+      flex: 1,
+      marginLeft: Spacing.sm,
+      fontSize: 14,
+      color: TEXT_PRIMARY,
+    },
+
+    // ========== 照片气泡 ==========
+    photoBubble: {
+      position: 'absolute',
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      borderWidth: 3,
+      borderColor: CARD_WHITE,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    photoBubbleImage: {
+      width: '100%',
+      height: '100%',
+    },
+    photoBubbleHot: {
+      borderColor: KLEIN_BLUE,
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+    },
+
+    // ========== 底部抽屉面板 ==========
+    bottomSheet: {
       position: 'absolute',
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: theme.backgroundRoot,
-      borderTopLeftRadius: BorderRadius["2xl"],
-      borderTopRightRadius: BorderRadius["2xl"],
-      paddingVertical: Spacing.xl,
-      maxHeight: '45%',
+      backgroundColor: CARD_WHITE,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 8,
+      maxHeight: SCREEN_HEIGHT * 0.6,
     },
-    spotsTitle: {
-      color: theme.textPrimary,
-      fontSize: 18,
-      fontWeight: '700',
-      paddingHorizontal: Spacing["2xl"],
-      marginBottom: Spacing.lg,
+    bottomSheetHandle: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: BORDER_LIGHT,
+      alignSelf: 'center',
+      marginTop: Spacing.md,
+      marginBottom: Spacing.sm,
     },
-    spotCard: {
+    bottomSheetHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: Spacing["2xl"],
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.lg,
+      paddingBottom: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: BORDER_LIGHT,
+    },
+    bottomSheetTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: TEXT_PRIMARY,
+    },
+    bottomSheetCount: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+    },
+    bottomSheetList: {
+      paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.md,
     },
-    spotImageContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: BorderRadius.md,
-      justifyContent: 'center',
+    
+    // 机位卡片
+    locationCard: {
+      flexDirection: 'row',
       alignItems: 'center',
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: BORDER_LIGHT,
     },
-    spotImage: {
+    locationImage: {
       width: 60,
       height: 60,
-      borderRadius: BorderRadius.md,
+      borderRadius: 8,
+      marginRight: Spacing.md,
     },
-    spotInfo: {
+    locationInfo: {
       flex: 1,
-      marginLeft: Spacing.lg,
     },
-    spotName: {
-      color: theme.textPrimary,
-      fontSize: 15,
-      fontWeight: '600',
-    },
-    spotStats: {
-      color: theme.textSecondary,
-      fontSize: 12,
-      marginTop: 2,
-    },
-    spotPhotos: {
-      color: theme.primary,
-      fontSize: 12,
-      marginTop: 2,
-    },
-    loadingContainer: {
-      paddingVertical: Spacing["2xl"],
-      alignItems: 'center',
-    },
-    emptyContainer: {
-      marginHorizontal: Spacing["2xl"],
-      padding: Spacing["2xl"],
-      borderRadius: BorderRadius.lg,
-      alignItems: 'center',
-    },
-    emptyText: {
+    locationName: {
       fontSize: 14,
-      marginTop: Spacing.md,
+      fontWeight: '500',
+      color: TEXT_PRIMARY,
+      marginBottom: 2,
     },
-    emptyHint: {
+    locationDistance: {
       fontSize: 12,
-      marginTop: Spacing.sm,
-      textAlign: 'center',
+      color: KLEIN_BLUE,
+      marginBottom: 2,
     },
-    // 地图标记样式
-    markerContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+    locationMeta: {
+      fontSize: 11,
+      color: TEXT_MUTED,
+    },
+    locationNavigateBtn: {
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      backgroundColor: KLEIN_BLUE,
+      borderRadius: BorderRadius.full,
+    },
+    locationNavigateBtnText: {
+      color: '#FFFFFF',
+      fontSize: 11,
+      fontWeight: '500',
+    },
+
+    // ========== 定位按钮 ==========
+    locateBtn: {
+      position: 'absolute',
+      right: Spacing.lg,
+      bottom: SCREEN_HEIGHT * 0.35,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: CARD_WHITE,
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    markerImageContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    markerImage: {
-      width: '100%',
-      height: '100%',
-    },
-    // Callout 样式
-    calloutContainer: {
-      width: 200,
-      borderRadius: BorderRadius.lg,
-      overflow: 'hidden',
-      elevation: 4,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.15,
-      shadowRadius: 4,
+      shadowRadius: 8,
+      elevation: 4,
     },
-    calloutImage: {
-      width: '100%',
-      height: 100,
-    },
-    calloutContent: {
-      padding: Spacing.md,
-    },
-    calloutTitle: {
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    calloutLocation: {
-      fontSize: 12,
-      marginTop: 4,
-    },
-    calloutStats: {
-      flexDirection: 'row',
+
+    // ========== 空状态 ==========
+    emptyState: {
       alignItems: 'center',
-      marginTop: 6,
+      paddingVertical: Spacing['3xl'],
     },
-    calloutStatText: {
-      fontSize: 11,
+    emptyText: {
+      color: TEXT_MUTED,
+      fontSize: 14,
+      marginTop: Spacing.md,
     },
   });
 };
