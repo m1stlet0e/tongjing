@@ -5,24 +5,36 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
   RefreshControl,
   Dimensions,
-  Platform,
-  StyleSheet,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
-import { createStyles, CHAMPAGNE_GOLD, DEEP_SPACE_BLACK, SOFT_WHITE } from './styles';
-import type { Photo } from '@/components/PhotoCard';
+import { createStyles, KLEIN_BLUE, BACKGROUND_LIGHT, TEXT_PRIMARY, TEXT_MUTED } from './styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
 const CARD_MARGIN = 20;
 const CARD_WIDTH = (SCREEN_WIDTH - CARD_MARGIN * 2 - CARD_GAP) / 2;
+
+interface PhotoItem {
+  id: number;
+  image_url: string;
+  title: string;
+  description: string;
+  location_name: string;
+  username: string;
+  avatar_url: string;
+  likes_count: number;
+  comments_count: number;
+  favorites_count: number;
+  tags: { tag_name: string; tag_type: string }[];
+  is_liked: boolean;
+  is_favorited: boolean;
+}
 
 // 模拟 Stories 数据
 const STORIES = [
@@ -47,7 +59,7 @@ export default function HomeScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   
   const [activeTab, setActiveTab] = useState('discover');
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +75,11 @@ export default function HomeScreen() {
     setError(null);
 
     try {
+      /**
+       * 服务端文件：server/src/routes/photos.ts
+       * 接口：GET /api/v1/photos
+       * 返回：{ success: boolean, data: { photos: PhotoItem[], pagination: {...} } }
+       */
       const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos`, {
         method: 'GET',
         headers: {
@@ -74,8 +91,9 @@ export default function HomeScreen() {
         throw new Error('获取照片失败');
       }
 
-      const data = await response.json();
-      setPhotos(data.photos || []);
+      const result = await response.json();
+      // API 返回结构：result.data.photos
+      setPhotos(result.data?.photos || []);
     } catch (err) {
       console.error('获取照片失败:', err);
       setError(err instanceof Error ? err.message : '获取照片失败');
@@ -94,6 +112,10 @@ export default function HomeScreen() {
   // 处理点赞
   const handleLike = async (photoId: number) => {
     try {
+      /**
+       * 服务端文件：server/src/routes/photos.ts
+       * 接口：POST /api/v1/photos/:id/like
+       */
       await fetch(`${process.env.EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photoId}/like`, {
         method: 'POST',
         headers: {
@@ -109,6 +131,10 @@ export default function HomeScreen() {
   // 处理收藏
   const handleFavorite = async (photoId: number) => {
     try {
+      /**
+       * 服务端文件：server/src/routes/photos.ts
+       * 接口：POST /api/v1/photos/:id/favorite
+       */
       await fetch(`${process.env.EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/photos/${photoId}/favorite`, {
         method: 'POST',
         headers: {
@@ -125,8 +151,8 @@ export default function HomeScreen() {
   const indicatorStyle = useMemo(() => {
     const layout = tabLayouts[activeTab];
     if (!layout) return { left: 0, width: 0 };
-    const textWidth = layout.width - 24; // 减去 padding
-    const left = layout.x + 12; // 加上 padding-left
+    const textWidth = layout.width - 28;
+    const left = layout.x + 14;
     return { left, width: textWidth };
   }, [activeTab, tabLayouts]);
 
@@ -136,7 +162,7 @@ export default function HomeScreen() {
       return (
         <TouchableOpacity key={story.id} style={styles.storyItem}>
           <View style={styles.storyAddBtn}>
-            <FontAwesome6 name="plus" size={20} color="rgba(255,255,255,0.6)" />
+            <FontAwesome6 name="plus" size={20} color={TEXT_MUTED} />
           </View>
           <Text style={styles.storyName}>{story.name}</Text>
         </TouchableOpacity>
@@ -188,30 +214,31 @@ export default function HomeScreen() {
   };
 
   // 渲染照片卡片（瀑布流）
-  const renderPhotoCard = ({ item, index }: { item: Photo; index: number }) => {
+  const renderPhotoCard = (photo: PhotoItem, index: number) => {
     const imageHeight = getImageHeight(index);
     
     return (
       <TouchableOpacity
+        key={photo.id}
         style={[styles.photoCard, { width: CARD_WIDTH }]}
         activeOpacity={0.9}
       >
         <View style={{ position: 'relative' }}>
           <Image
-            source={{ uri: item.image_url }}
+            source={{ uri: photo.image_url }}
             style={[styles.photoImage, { height: imageHeight }]}
             resizeMode="cover"
           />
           {/* 底部渐变遮罩 */}
           <View style={[styles.photoOverlay, { height: 60 }]}>
             <Text style={styles.photoTitle} numberOfLines={1}>
-              {item.title || '无标题'}
+              {photo.title || '无标题'}
             </Text>
-            {item.location_name && (
+            {photo.location_name && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                <FontAwesome6 name="location-dot" size={8} color="rgba(255,255,255,0.5)" />
+                <FontAwesome6 name="location-dot" size={8} color="rgba(255,255,255,0.7)" />
                 <Text style={styles.photoLocation} numberOfLines={1}>
-                  {item.location_name}
+                  {photo.location_name}
                 </Text>
               </View>
             )}
@@ -221,36 +248,36 @@ export default function HomeScreen() {
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <Image
-              source={{ uri: item.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}
+              source={{ uri: photo.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}
               style={styles.cardAvatar}
             />
             <Text style={styles.cardUsername} numberOfLines={1}>
-              {item.username || '匿名'}
+              {photo.username || '匿名'}
             </Text>
           </View>
           <View style={styles.cardFooter}>
             <View style={styles.cardStats}>
               <TouchableOpacity
                 style={styles.cardStat}
-                onPress={() => handleLike(item.id)}
+                onPress={() => handleLike(photo.id)}
               >
                 <FontAwesome6
                   name="heart"
                   size={12}
-                  solid={item.is_liked}
-                  color={item.is_liked ? theme.error : 'rgba(255,255,255,0.45)'}
+                  solid={photo.is_liked}
+                  color={photo.is_liked ? theme.error : TEXT_MUTED}
                 />
-                <Text style={styles.cardStatText}>{item.likes_count || 0}</Text>
+                <Text style={styles.cardStatText}>{photo.likes_count || 0}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cardStat}
-                onPress={() => handleFavorite(item.id)}
+                onPress={() => handleFavorite(photo.id)}
               >
                 <FontAwesome6
                   name="bookmark"
                   size={12}
-                  solid={item.is_favorited}
-                  color={item.is_favorited ? CHAMPAGNE_GOLD : 'rgba(255,255,255,0.45)'}
+                  solid={photo.is_favorited}
+                  color={photo.is_favorited ? KLEIN_BLUE : TEXT_MUTED}
                 />
               </TouchableOpacity>
             </View>
@@ -259,6 +286,22 @@ export default function HomeScreen() {
       </TouchableOpacity>
     );
   };
+
+  // 构建瀑布流数据（双列）
+  const masonryData = useMemo(() => {
+    const leftColumn: (PhotoItem & { colIndex: number })[] = [];
+    const rightColumn: (PhotoItem & { colIndex: number })[] = [];
+    
+    photos.forEach((photo, index) => {
+      if (index % 2 === 0) {
+        leftColumn.push({ ...photo, colIndex: index });
+      } else {
+        rightColumn.push({ ...photo, colIndex: index });
+      }
+    });
+
+    return { leftColumn, rightColumn };
+  }, [photos]);
 
   // 渲染列表底部
   const renderListFooter = () => (
@@ -272,8 +315,8 @@ export default function HomeScreen() {
     if (loading) {
       return (
         <View style={styles.loadingState}>
-          <ActivityIndicator color={CHAMPAGNE_GOLD} size="small" />
-          <Text style={styles.loadingText}>加载中</Text>
+          <ActivityIndicator color={KLEIN_BLUE} size="small" />
+          <Text style={styles.loadingText}>加载中...</Text>
         </View>
       );
     }
@@ -292,30 +335,14 @@ export default function HomeScreen() {
 
     return (
       <View style={styles.emptyState}>
-        <FontAwesome6 name="images" size={44} color="rgba(255,255,255,0.15)" style={styles.emptyIcon} />
+        <FontAwesome6 name="images" size={44} color={TEXT_MUTED} style={styles.emptyIcon} />
         <Text style={styles.emptyText}>暂无作品</Text>
       </View>
     );
   };
 
-  // 构建瀑布流数据（双列）
-  const masonryData = useMemo(() => {
-    const leftColumn: (Photo & { colIndex: number })[] = [];
-    const rightColumn: (Photo & { colIndex: number })[] = [];
-    
-    photos.forEach((photo, index) => {
-      if (index % 2 === 0) {
-        leftColumn.push({ ...photo, colIndex: index });
-      } else {
-        rightColumn.push({ ...photo, colIndex: index });
-      }
-    });
-
-    return { leftColumn, rightColumn };
-  }, [photos]);
-
   return (
-    <Screen backgroundColor={DEEP_SPACE_BLACK} statusBarStyle="light">
+    <Screen backgroundColor={BACKGROUND_LIGHT} statusBarStyle="dark">
       <View style={styles.container}>
         {/* ========== Stories 横向滚动条 ========== */}
         <View style={styles.storiesSection}>
@@ -358,30 +385,24 @@ export default function HomeScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => fetchPhotos(true)}
-              tintColor={CHAMPAGNE_GOLD}
-              colors={[CHAMPAGNE_GOLD]}
+              tintColor={KLEIN_BLUE}
+              colors={[KLEIN_BLUE]}
             />
           }
         >
-          {loading || photos.length === 0 ? (
+          {loading ? (
+            renderEmpty()
+          ) : photos.length === 0 ? (
             renderEmpty()
           ) : (
             <View style={styles.masonryRow}>
               {/* 左列 */}
               <View style={styles.masonryColumn}>
-                {masonryData.leftColumn.map((photo) => (
-                  <View key={`left-${photo.id}`}>
-                    {renderPhotoCard({ item: photo, index: photo.colIndex })}
-                  </View>
-                ))}
+                {masonryData.leftColumn.map((photo) => renderPhotoCard(photo, photo.colIndex))}
               </View>
               {/* 右列 */}
               <View style={styles.masonryColumn}>
-                {masonryData.rightColumn.map((photo) => (
-                  <View key={`right-${photo.id}`}>
-                    {renderPhotoCard({ item: photo, index: photo.colIndex })}
-                  </View>
-                ))}
+                {masonryData.rightColumn.map((photo) => renderPhotoCard(photo, photo.colIndex))}
               </View>
             </View>
           )}

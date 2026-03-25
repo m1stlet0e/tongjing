@@ -1,12 +1,15 @@
 import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
 
-// 克莱因蓝高定风配色
+// 配色方案（浅色背景）
 export const KLEIN_BLUE = '#002FA7';
 export const CHAMPAGNE_GOLD = '#C9A96E';
-export const DEEP_SPACE_BLACK = '#0A0A0F';
-export const SOFT_WHITE = '#FAFAFA';
-export const WARM_GRAY = '#1A1A1F';
+export const BACKGROUND_LIGHT = '#FAFAFA';
+export const CARD_WHITE = '#FFFFFF';
+export const TEXT_PRIMARY = '#1A1A1A';
+export const TEXT_SECONDARY = '#666666';
+export const TEXT_MUTED = '#999999';
+export const BORDER_LIGHT = '#EEEEEE';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = Spacing.md;
@@ -18,29 +21,29 @@ export const createStyles = (theme: Theme) => {
     // 容器
     container: {
       flex: 1,
-      backgroundColor: DEEP_SPACE_BLACK,
+      backgroundColor: BACKGROUND_LIGHT,
     },
 
     // ========== Stories 横向滚动条 ==========
     storiesSection: {
       paddingVertical: Spacing.md,
+      backgroundColor: CARD_WHITE,
       borderBottomWidth: 1,
-      borderBottomColor: 'rgba(255,255,255,0.05)',
+      borderBottomColor: BORDER_LIGHT,
     },
     storiesScrollContent: {
       paddingHorizontal: CARD_MARGIN,
-      gap: Spacing.md,
     },
     storyItem: {
       alignItems: 'center',
-      width: 72,
+      marginRight: Spacing.md,
     },
     storyRing: {
       width: 64,
       height: 64,
       borderRadius: 32,
       borderWidth: 2,
-      borderColor: CHAMPAGNE_GOLD,
+      borderColor: KLEIN_BLUE,
       padding: 2,
       marginBottom: Spacing.xs,
     },
@@ -49,36 +52,33 @@ export const createStyles = (theme: Theme) => {
       height: '100%',
       borderRadius: 28,
     },
-    storyAddRing: {
-      borderColor: 'rgba(255,255,255,0.2)',
-      borderStyle: 'dashed',
-    },
     storyAddBtn: {
       width: 64,
       height: 64,
       borderRadius: 32,
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.2)',
-      borderStyle: 'dashed',
+      borderColor: BORDER_LIGHT,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: Spacing.xs,
+      backgroundColor: BACKGROUND_LIGHT,
     },
     storyName: {
-      color: 'rgba(255,255,255,0.6)',
+      color: TEXT_MUTED,
       fontSize: 10,
-      fontWeight: '300',
-      letterSpacing: 0.3,
+      fontWeight: '400',
       textAlign: 'center',
     },
     storyNameActive: {
-      color: SOFT_WHITE,
+      color: TEXT_PRIMARY,
     },
 
     // ========== 标签导航 ==========
     tabsSection: {
-      backgroundColor: DEEP_SPACE_BLACK,
+      backgroundColor: CARD_WHITE,
       paddingVertical: Spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: BORDER_LIGHT,
     },
     tabsScrollContent: {
       paddingHorizontal: CARD_MARGIN,
@@ -89,29 +89,28 @@ export const createStyles = (theme: Theme) => {
       marginRight: Spacing.md,
     },
     tabText: {
-      color: 'rgba(255,255,255,0.4)',
-      fontSize: 13,
+      color: TEXT_MUTED,
+      fontSize: 14,
       fontWeight: '400',
-      letterSpacing: 0.5,
     },
     tabTextActive: {
-      color: SOFT_WHITE,
-      fontSize: 13,
+      color: TEXT_PRIMARY,
+      fontSize: 14,
       fontWeight: '600',
-      letterSpacing: 0.5,
     },
     tabIndicator: {
       position: 'absolute',
       bottom: 0,
       height: 2,
-      backgroundColor: CHAMPAGNE_GOLD,
+      backgroundColor: KLEIN_BLUE,
       borderRadius: 1,
     },
 
     // ========== 瀑布流列表 ==========
     masonryContainer: {
       paddingHorizontal: CARD_MARGIN,
-      paddingTop: Spacing.sm,
+      paddingTop: Spacing.md,
+      paddingBottom: Spacing['3xl'],
     },
     masonryColumn: {
       flex: 1,
@@ -124,10 +123,16 @@ export const createStyles = (theme: Theme) => {
     // 照片卡片（瀑布流）
     photoCard: {
       marginBottom: CARD_GAP,
-      backgroundColor: WARM_GRAY,
+      backgroundColor: CARD_WHITE,
       borderRadius: 12,
       overflow: 'hidden',
       width: CARD_WIDTH,
+      // 柔和阴影
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+      elevation: 2,
     },
     photoImage: {
       width: '100%',
@@ -137,22 +142,21 @@ export const createStyles = (theme: Theme) => {
       bottom: 0,
       left: 0,
       right: 0,
-      paddingTop: Spacing['2xl'],
+      paddingTop: Spacing.xl,
       paddingHorizontal: Spacing.sm,
       paddingBottom: Spacing.sm,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: 'rgba(0,0,0,0.4)',
     },
     photoTitle: {
-      color: SOFT_WHITE,
+      color: '#FFFFFF',
       fontSize: 12,
-      fontWeight: '400',
-      letterSpacing: 0.2,
+      fontWeight: '500',
       marginBottom: 2,
     },
     photoLocation: {
-      color: 'rgba(255,255,255,0.5)',
+      color: 'rgba(255,255,255,0.7)',
       fontSize: 10,
-      fontWeight: '300',
+      fontWeight: '400',
     },
     
     // 卡片内容
@@ -169,14 +173,11 @@ export const createStyles = (theme: Theme) => {
       height: 24,
       borderRadius: 12,
       marginRight: Spacing.sm,
-      borderWidth: 1,
-      borderColor: 'rgba(201,169,110,0.3)',
     },
     cardUsername: {
-      color: SOFT_WHITE,
+      color: TEXT_PRIMARY,
       fontSize: 11,
-      fontWeight: '400',
-      letterSpacing: 0.2,
+      fontWeight: '500',
       flex: 1,
     },
     cardFooter: {
@@ -195,9 +196,9 @@ export const createStyles = (theme: Theme) => {
       gap: 3,
     },
     cardStatText: {
-      color: 'rgba(255,255,255,0.5)',
+      color: TEXT_MUTED,
       fontSize: 10,
-      fontWeight: '300',
+      fontWeight: '400',
     },
 
     // ========== 列表底部 ==========
@@ -206,12 +207,10 @@ export const createStyles = (theme: Theme) => {
       paddingVertical: Spacing['2xl'],
     },
     footerBrand: {
-      color: CHAMPAGNE_GOLD,
+      color: TEXT_MUTED,
       fontSize: 10,
       fontWeight: '300',
-      letterSpacing: 6,
-      textTransform: 'uppercase',
-      opacity: 0.25,
+      letterSpacing: 4,
     },
 
     // ========== 状态提示 ==========
@@ -223,10 +222,9 @@ export const createStyles = (theme: Theme) => {
       marginBottom: Spacing.lg,
     },
     emptyText: {
-      color: 'rgba(255,255,255,0.25)',
-      fontSize: 13,
-      fontWeight: '300',
-      letterSpacing: 1,
+      color: TEXT_MUTED,
+      fontSize: 14,
+      fontWeight: '400',
     },
 
     loadingState: {
@@ -234,10 +232,8 @@ export const createStyles = (theme: Theme) => {
       paddingVertical: Spacing['3xl'],
     },
     loadingText: {
-      color: 'rgba(255,255,255,0.35)',
-      fontSize: 12,
-      fontWeight: '300',
-      letterSpacing: 1,
+      color: TEXT_MUTED,
+      fontSize: 13,
       marginTop: Spacing.md,
     },
 
@@ -249,8 +245,6 @@ export const createStyles = (theme: Theme) => {
     errorText: {
       color: theme.error,
       fontSize: 13,
-      fontWeight: '300',
-      letterSpacing: 0.5,
       textAlign: 'center',
     },
     retryButton: {
@@ -258,14 +252,12 @@ export const createStyles = (theme: Theme) => {
       paddingVertical: Spacing.md,
       paddingHorizontal: Spacing.xl,
       borderRadius: BorderRadius.full,
-      borderWidth: 1,
-      borderColor: CHAMPAGNE_GOLD,
+      backgroundColor: KLEIN_BLUE,
     },
     retryButtonText: {
-      color: CHAMPAGNE_GOLD,
-      fontSize: 12,
-      fontWeight: '300',
-      letterSpacing: 1,
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '500',
     },
   });
 };
