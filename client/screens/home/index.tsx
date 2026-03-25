@@ -15,7 +15,7 @@ import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
-import { createStyles, KLEIN_BLUE, CHAMPAGNE_GOLD, DEEP_SPACE_BLACK, SOFT_WHITE } from './styles';
+import { createStyles, CHAMPAGNE_GOLD, DEEP_SPACE_BLACK, SOFT_WHITE } from './styles';
 import type { Photo } from '@/components/PhotoCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -305,7 +305,7 @@ export default function HomeScreen() {
   const indicatorStyle = useMemo(() => {
     const layout = tabLayouts[activeTab];
     if (!layout) return { left: 0, width: 0 };
-    const textWidth = 40; // 大约文本宽度
+    const textWidth = 40;
     const left = layout.x + (layout.width - textWidth) / 2;
     return { left, width: textWidth };
   }, [activeTab, tabLayouts]);
@@ -313,25 +313,7 @@ export default function HomeScreen() {
   return (
     <Screen backgroundColor={DEEP_SPACE_BLACK} statusBarStyle="light">
       <View style={styles.container}>
-        {/* ========== 紧凑顶部导航栏 ========== */}
-        <View style={styles.topNav}>
-          <View style={styles.topNavLeft}>
-            <View style={styles.brandMark}>
-              <Text style={styles.brandMarkText}>镜</Text>
-            </View>
-            <Text style={styles.brandName}>同镜</Text>
-          </View>
-          <View style={styles.topNavRight}>
-            <TouchableOpacity style={styles.navIconBtn}>
-              <FontAwesome6 name="bell" size={16} color="rgba(255,255,255,0.75)" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navIconBtn}>
-              <FontAwesome6 name="magnifying-glass" size={16} color="rgba(255,255,255,0.75)" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ========== 标签导航 ========== */}
+        {/* ========== 标签导航（顶部唯一元素）========== */}
         <View style={styles.tabsSection}>
           <ScrollView
             horizontal

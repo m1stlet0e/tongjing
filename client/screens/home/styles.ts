@@ -19,91 +19,10 @@ export const createStyles = (theme: Theme) => {
       paddingBottom: Spacing['5xl'],
     },
 
-    // ========== 紧凑顶部导航栏 ==========
-    topNav: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: Spacing.lg,
-      paddingTop: Platform.OS === 'web' ? Spacing.lg : Spacing.xl,
-      paddingBottom: Spacing.md,
-      backgroundColor: DEEP_SPACE_BLACK,
-    },
-    topNavLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.sm,
-    },
-    brandMark: {
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      backgroundColor: KLEIN_BLUE,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: CHAMPAGNE_GOLD,
-    },
-    brandMarkText: {
-      color: SOFT_WHITE,
-      fontSize: 14,
-      fontWeight: '300',
-      letterSpacing: 1,
-    },
-    brandName: {
-      color: SOFT_WHITE,
-      fontSize: 18,
-      fontWeight: '300',
-      letterSpacing: 3,
-    },
-    topNavRight: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.md,
-    },
-    navIconBtn: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'rgba(255,255,255,0.05)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-
-    // ========== 搜索栏 ==========
-    searchSection: {
-      paddingHorizontal: Spacing.lg,
-      paddingBottom: Spacing.md,
-      backgroundColor: DEEP_SPACE_BLACK,
-    },
-    searchBox: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: 'rgba(255,255,255,0.06)',
-      borderRadius: 24,
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.md,
-      borderWidth: 1,
-      borderColor: 'rgba(201,169,110,0.15)',
-    },
-    searchInput: {
-      flex: 1,
-      marginLeft: Spacing.md,
-      color: SOFT_WHITE,
-      fontSize: 14,
-      fontWeight: '300',
-      letterSpacing: 0.5,
-    },
-    searchPlaceholder: {
-      color: 'rgba(255,255,255,0.3)',
-      fontSize: 14,
-      fontWeight: '300',
-      letterSpacing: 0.5,
-    },
-
-    // ========== 标签导航 ==========
+    // ========== 标签导航（顶部唯一元素）==========
     tabsSection: {
       backgroundColor: DEEP_SPACE_BLACK,
+      paddingTop: Platform.OS === 'web' ? Spacing.lg : Spacing.xl,
       paddingBottom: Spacing.sm,
     },
     tabsScrollContent: {
