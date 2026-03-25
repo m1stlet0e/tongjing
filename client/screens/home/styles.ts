@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, StatusBar } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
 
 // 克莱因蓝高定风配色
@@ -6,7 +6,7 @@ export const KLEIN_BLUE = '#002FA7';
 export const CHAMPAGNE_GOLD = '#C9A96E';
 export const DEEP_SPACE_BLACK = '#0A0A0F';
 export const SOFT_WHITE = '#FAFAFA';
-export const WARM_GRAY = '#2A2A2A';
+export const WARM_GRAY = '#1A1A1F';
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
@@ -19,69 +19,100 @@ export const createStyles = (theme: Theme) => {
       paddingBottom: Spacing['5xl'],
     },
 
-    // ========== 克莱因蓝头部 ==========
-    kleinHeader: {
-      backgroundColor: KLEIN_BLUE,
-      paddingHorizontal: Spacing.xl,
-      paddingTop: Platform.OS === 'web' ? Spacing['2xl'] : Spacing['3xl'],
-      paddingBottom: Spacing['2xl'],
-    },
-    brandRow: {
+    // ========== 紧凑顶部导航栏 ==========
+    topNav: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      paddingHorizontal: Spacing.lg,
+      paddingTop: Platform.OS === 'web' ? Spacing.lg : Spacing.xl,
+      paddingBottom: Spacing.md,
+      backgroundColor: DEEP_SPACE_BLACK,
+    },
+    topNavLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    brandMark: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      backgroundColor: KLEIN_BLUE,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: CHAMPAGNE_GOLD,
+    },
+    brandMarkText: {
+      color: SOFT_WHITE,
+      fontSize: 14,
+      fontWeight: '300',
+      letterSpacing: 1,
     },
     brandName: {
       color: SOFT_WHITE,
-      fontSize: 28,
-      fontWeight: '300', // 极细字重
-      letterSpacing: 8, // 大字间距
-      textTransform: 'uppercase',
+      fontSize: 18,
+      fontWeight: '300',
+      letterSpacing: 3,
     },
-    headerActions: {
+    topNavRight: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: Spacing.lg,
+      gap: Spacing.md,
     },
-    headerIcon: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: 'rgba(255,255,255,0.1)',
+    navIconBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.05)',
       justifyContent: 'center',
       alignItems: 'center',
     },
-    
-    // 金色分割线
-    goldDivider: {
-      height: 1,
-      backgroundColor: CHAMPAGNE_GOLD,
-      marginTop: Spacing.xl,
-      opacity: 0.6,
+
+    // ========== 搜索栏 ==========
+    searchSection: {
+      paddingHorizontal: Spacing.lg,
+      paddingBottom: Spacing.md,
+      backgroundColor: DEEP_SPACE_BLACK,
     },
-    
-    // 副标题
-    headerSubtitle: {
-      marginTop: Spacing.lg,
-      color: 'rgba(255,255,255,0.7)',
-      fontSize: 11,
+    searchBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      borderRadius: 24,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+      borderWidth: 1,
+      borderColor: 'rgba(201,169,110,0.15)',
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: Spacing.md,
+      color: SOFT_WHITE,
+      fontSize: 14,
       fontWeight: '300',
-      letterSpacing: 4,
-      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    searchPlaceholder: {
+      color: 'rgba(255,255,255,0.3)',
+      fontSize: 14,
+      fontWeight: '300',
+      letterSpacing: 0.5,
     },
 
-    // ========== 杂志风标签导航 ==========
+    // ========== 标签导航 ==========
     tabsSection: {
       backgroundColor: DEEP_SPACE_BLACK,
-      paddingVertical: 0,
+      paddingBottom: Spacing.sm,
     },
     tabsScrollContent: {
       paddingHorizontal: Spacing.lg,
     },
     tabItem: {
-      paddingVertical: Spacing.lg,
+      paddingVertical: Spacing.md,
       paddingHorizontal: Spacing.md,
-      marginRight: Spacing.xl,
+      marginRight: Spacing.lg,
       alignItems: 'center',
     },
     tabContent: {
@@ -90,57 +121,62 @@ export const createStyles = (theme: Theme) => {
       gap: Spacing.sm,
     },
     tabText: {
-      color: 'rgba(255,255,255,0.5)',
-      fontSize: 12,
-      fontWeight: '300',
-      letterSpacing: 2,
-      textTransform: 'uppercase',
+      color: 'rgba(255,255,255,0.4)',
+      fontSize: 13,
+      fontWeight: '400',
+      letterSpacing: 1,
     },
     tabTextActive: {
-      color: CHAMPAGNE_GOLD,
-      fontSize: 12,
-      fontWeight: '400',
-      letterSpacing: 2,
+      color: SOFT_WHITE,
+      fontSize: 13,
+      fontWeight: '500',
+      letterSpacing: 1,
     },
     tabIndicator: {
       position: 'absolute',
       bottom: 0,
-      height: 1,
+      height: 2,
       backgroundColor: CHAMPAGNE_GOLD,
+      borderRadius: 1,
+    },
+
+    // ========== 内容分割线 ==========
+    sectionDivider: {
+      height: 1,
+      backgroundColor: 'rgba(201,169,110,0.1)',
+      marginHorizontal: Spacing.lg,
     },
 
     // ========== 列表区域 ==========
     listSection: {
       backgroundColor: DEEP_SPACE_BLACK,
-      paddingTop: Spacing.sm,
+      paddingTop: Spacing.md,
     },
     
     // 列表头部统计
     listHeader: {
       paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.lg,
+      paddingVertical: Spacing.md,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      borderBottomWidth: 1,
-      borderBottomColor: 'rgba(201,169,110,0.2)',
     },
     listHeaderLeft: {
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.md,
+      alignItems: 'baseline',
+      gap: Spacing.sm,
     },
     listHeaderCount: {
       color: CHAMPAGNE_GOLD,
-      fontSize: 24,
-      fontWeight: '300',
-      letterSpacing: 2,
-    },
-    listHeaderLabel: {
-      color: 'rgba(255,255,255,0.4)',
-      fontSize: 11,
+      fontSize: 20,
       fontWeight: '300',
       letterSpacing: 1,
+    },
+    listHeaderLabel: {
+      color: 'rgba(255,255,255,0.3)',
+      fontSize: 12,
+      fontWeight: '300',
+      letterSpacing: 0.5,
     },
     filterButton: {
       flexDirection: 'row',
@@ -150,13 +186,13 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: Spacing.md,
       borderRadius: BorderRadius.full,
       borderWidth: 1,
-      borderColor: 'rgba(201,169,110,0.3)',
+      borderColor: 'rgba(201,169,110,0.25)',
     },
     filterButtonText: {
       color: CHAMPAGNE_GOLD,
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '300',
-      letterSpacing: 1,
+      letterSpacing: 0.5,
     },
 
     // 照片卡片
@@ -164,7 +200,7 @@ export const createStyles = (theme: Theme) => {
       marginHorizontal: Spacing.lg,
       marginBottom: Spacing.lg,
       backgroundColor: WARM_GRAY,
-      borderRadius: 0, // 直角设计
+      borderRadius: 12,
       overflow: 'hidden',
     },
     photoImage: {
@@ -176,9 +212,9 @@ export const createStyles = (theme: Theme) => {
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
+      backgroundColor: 'rgba(0,0,0,0.65)',
       paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.md,
+      paddingVertical: Spacing.sm,
     },
     exifRow: {
       flexDirection: 'row',
@@ -191,10 +227,10 @@ export const createStyles = (theme: Theme) => {
       gap: Spacing.xs,
     },
     exifText: {
-      color: 'rgba(255,255,255,0.8)',
+      color: 'rgba(255,255,255,0.75)',
       fontSize: 10,
       fontWeight: '300',
-      letterSpacing: 0.5,
+      letterSpacing: 0.3,
     },
     
     // 卡片内容
@@ -212,16 +248,16 @@ export const createStyles = (theme: Theme) => {
       borderRadius: 18,
       marginRight: Spacing.md,
       borderWidth: 1,
-      borderColor: CHAMPAGNE_GOLD,
+      borderColor: 'rgba(201,169,110,0.4)',
     },
     cardUserInfo: {
       flex: 1,
     },
     cardUsername: {
       color: SOFT_WHITE,
-      fontSize: 13,
+      fontSize: 14,
       fontWeight: '400',
-      letterSpacing: 0.5,
+      letterSpacing: 0.3,
     },
     cardLocation: {
       color: 'rgba(255,255,255,0.4)',
@@ -232,16 +268,16 @@ export const createStyles = (theme: Theme) => {
     cardTitle: {
       color: SOFT_WHITE,
       fontSize: 16,
-      fontWeight: '400',
-      letterSpacing: 1,
+      fontWeight: '500',
+      letterSpacing: 0.3,
       marginBottom: Spacing.sm,
     },
     cardDescription: {
-      color: 'rgba(255,255,255,0.6)',
-      fontSize: 12,
+      color: 'rgba(255,255,255,0.55)',
+      fontSize: 13,
       fontWeight: '300',
-      letterSpacing: 0.5,
-      lineHeight: 18,
+      letterSpacing: 0.2,
+      lineHeight: 19,
       marginBottom: Spacing.md,
     },
     cardTags: {
@@ -253,14 +289,14 @@ export const createStyles = (theme: Theme) => {
     cardTag: {
       paddingVertical: Spacing.xs,
       paddingHorizontal: Spacing.md,
-      borderWidth: 1,
-      borderColor: 'rgba(201,169,110,0.3)',
+      borderRadius: BorderRadius.full,
+      backgroundColor: 'rgba(201,169,110,0.1)',
     },
     cardTagText: {
       color: CHAMPAGNE_GOLD,
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: '300',
-      letterSpacing: 1,
+      letterSpacing: 0.5,
     },
     
     // 卡片底部
@@ -269,7 +305,7 @@ export const createStyles = (theme: Theme) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       borderTopWidth: 1,
-      borderTopColor: 'rgba(201,169,110,0.15)',
+      borderTopColor: 'rgba(255,255,255,0.06)',
       paddingTop: Spacing.md,
     },
     cardStats: {
@@ -284,7 +320,7 @@ export const createStyles = (theme: Theme) => {
     },
     cardStatText: {
       color: 'rgba(255,255,255,0.5)',
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '300',
     },
     cardShare: {
@@ -294,7 +330,7 @@ export const createStyles = (theme: Theme) => {
     // ========== 底部品牌标识 ==========
     listFooter: {
       alignItems: 'center',
-      paddingVertical: Spacing['3xl'],
+      paddingVertical: Spacing['2xl'],
     },
     footerBrand: {
       color: CHAMPAGNE_GOLD,
@@ -302,14 +338,14 @@ export const createStyles = (theme: Theme) => {
       fontWeight: '300',
       letterSpacing: 6,
       textTransform: 'uppercase',
-      opacity: 0.4,
+      opacity: 0.3,
     },
     footerLine: {
-      width: 60,
+      width: 40,
       height: 1,
       backgroundColor: CHAMPAGNE_GOLD,
-      opacity: 0.3,
-      marginTop: Spacing.md,
+      opacity: 0.2,
+      marginTop: Spacing.sm,
     },
 
     // ========== 状态提示 ==========
@@ -321,10 +357,10 @@ export const createStyles = (theme: Theme) => {
       marginBottom: Spacing.lg,
     },
     emptyText: {
-      color: 'rgba(255,255,255,0.3)',
-      fontSize: 12,
+      color: 'rgba(255,255,255,0.25)',
+      fontSize: 13,
       fontWeight: '300',
-      letterSpacing: 2,
+      letterSpacing: 1,
     },
 
     loadingState: {
@@ -332,10 +368,10 @@ export const createStyles = (theme: Theme) => {
       paddingVertical: Spacing['3xl'],
     },
     loadingText: {
-      color: 'rgba(255,255,255,0.4)',
-      fontSize: 11,
+      color: 'rgba(255,255,255,0.35)',
+      fontSize: 12,
       fontWeight: '300',
-      letterSpacing: 2,
+      letterSpacing: 1,
       marginTop: Spacing.md,
     },
 
@@ -347,23 +383,24 @@ export const createStyles = (theme: Theme) => {
     },
     errorText: {
       color: theme.error,
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '300',
-      letterSpacing: 1,
+      letterSpacing: 0.5,
       textAlign: 'center',
     },
     retryButton: {
       marginTop: Spacing.lg,
       paddingVertical: Spacing.md,
       paddingHorizontal: Spacing.xl,
+      borderRadius: BorderRadius.full,
       borderWidth: 1,
       borderColor: CHAMPAGNE_GOLD,
     },
     retryButtonText: {
       color: CHAMPAGNE_GOLD,
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '300',
-      letterSpacing: 2,
+      letterSpacing: 1,
     },
   });
 };

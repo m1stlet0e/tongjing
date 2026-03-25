@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -15,7 +15,7 @@ import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
-import { createStyles, KLEIN_BLUE, CHAMPAGNE_GOLD, DEEP_SPACE_BLACK } from './styles';
+import { createStyles, KLEIN_BLUE, CHAMPAGNE_GOLD, DEEP_SPACE_BLACK, SOFT_WHITE } from './styles';
 import type { Photo } from '@/components/PhotoCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -40,17 +40,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tabLayouts, setTabLayouts] = useState<{ [key: string]: number }>({});
-  const [indicatorLeft, setIndicatorLeft] = useState(0);
-  const [indicatorWidth, setIndicatorWidth] = useState(0);
-
-  // 计算指示器位置
-  useEffect(() => {
-    if (tabLayouts[activeTab]) {
-      setIndicatorLeft(tabLayouts[activeTab]);
-      setIndicatorWidth(60); // 固定宽度
-    }
-  }, [activeTab, tabLayouts]);
+  const [tabLayouts, setTabLayouts] = useState<{ [key: string]: { x: number; width: number } }>({});
 
   // 获取照片数据
   const fetchPhotos = useCallback(async (isRefresh = false) => {
@@ -131,7 +121,10 @@ export default function HomeScreen() {
         onLayout={(e) => {
           setTabLayouts((prev) => ({
             ...prev,
-            [tab.key]: e.nativeEvent.layout.x,
+            [tab.key]: {
+              x: e.nativeEvent.layout.x,
+              width: e.nativeEvent.layout.width,
+            },
           }));
         }}
         activeOpacity={0.8}
@@ -139,8 +132,8 @@ export default function HomeScreen() {
         <View style={styles.tabContent}>
           <FontAwesome6
             name={tab.icon}
-            size={12}
-            color={isActive ? CHAMPAGNE_GOLD : 'rgba(255,255,255,0.4)'}
+            size={11}
+            color={isActive ? SOFT_WHITE : 'rgba(255,255,255,0.35)'}
             solid={isActive}
           />
           <Text style={isActive ? styles.tabTextActive : styles.tabText}>
@@ -162,19 +155,19 @@ export default function HomeScreen() {
         <View style={styles.photoExifBar}>
           <View style={styles.exifRow}>
             <View style={styles.exifItem}>
-              <FontAwesome6 name="camera" size={10} color="rgba(255,255,255,0.7)" />
+              <FontAwesome6 name="camera" size={10} color="rgba(255,255,255,0.65)" />
               <Text style={styles.exifText}>{item.camera_model || '未知'}</Text>
             </View>
             <View style={styles.exifItem}>
-              <FontAwesome6 name="circle-dot" size={10} color="rgba(255,255,255,0.7)" />
+              <FontAwesome6 name="circle-dot" size={10} color="rgba(255,255,255,0.65)" />
               <Text style={styles.exifText}>{item.aperture || 'f/2.8'}</Text>
             </View>
             <View style={styles.exifItem}>
-              <FontAwesome6 name="clock" size={10} color="rgba(255,255,255,0.7)" />
+              <FontAwesome6 name="clock" size={10} color="rgba(255,255,255,0.65)" />
               <Text style={styles.exifText}>{item.shutter_speed || '1/125'}</Text>
             </View>
             <View style={styles.exifItem}>
-              <FontAwesome6 name="film" size={10} color="rgba(255,255,255,0.7)" />
+              <FontAwesome6 name="film" size={10} color="rgba(255,255,255,0.65)" />
               <Text style={styles.exifText}>ISO {item.iso || 400}</Text>
             </View>
           </View>
@@ -223,13 +216,13 @@ export default function HomeScreen() {
                 name={item.is_liked ? 'heart' : 'heart'}
                 size={16}
                 solid={item.is_liked}
-                color={item.is_liked ? theme.error : 'rgba(255,255,255,0.5)'}
+                color={item.is_liked ? theme.error : 'rgba(255,255,255,0.45)'}
               />
               <Text style={styles.cardStatText}>{item.likes_count || 0}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.cardStat}>
-              <FontAwesome6 name="comment" size={16} color="rgba(255,255,255,0.5)" />
+              <FontAwesome6 name="comment" size={16} color="rgba(255,255,255,0.45)" />
               <Text style={styles.cardStatText}>{item.comments_count || 0}</Text>
             </TouchableOpacity>
 
@@ -241,14 +234,14 @@ export default function HomeScreen() {
                 name={item.is_favorited ? 'bookmark' : 'bookmark'}
                 size={16}
                 solid={item.is_favorited}
-                color={item.is_favorited ? CHAMPAGNE_GOLD : 'rgba(255,255,255,0.5)'}
+                color={item.is_favorited ? CHAMPAGNE_GOLD : 'rgba(255,255,255,0.45)'}
               />
               <Text style={styles.cardStatText}>{item.favorites_count || 0}</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.cardShare}>
-            <FontAwesome6 name="share-nodes" size={16} color="rgba(255,255,255,0.5)" />
+            <FontAwesome6 name="share-nodes" size={16} color="rgba(255,255,255,0.45)" />
           </TouchableOpacity>
         </View>
       </View>
@@ -291,7 +284,7 @@ export default function HomeScreen() {
     if (error) {
       return (
         <View style={styles.errorState}>
-          <FontAwesome6 name="triangle-exclamation" size={32} color={theme.error} />
+          <FontAwesome6 name="triangle-exclamation" size={28} color={theme.error} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => fetchPhotos()}>
             <Text style={styles.retryButtonText}>重试</Text>
@@ -302,33 +295,43 @@ export default function HomeScreen() {
 
     return (
       <View style={styles.emptyState}>
-        <FontAwesome6 name="images" size={48} color="rgba(255,255,255,0.2)" style={styles.emptyIcon} />
+        <FontAwesome6 name="images" size={44} color="rgba(255,255,255,0.15)" style={styles.emptyIcon} />
         <Text style={styles.emptyText}>暂无作品</Text>
       </View>
     );
   };
 
+  // 计算指示器位置和宽度
+  const indicatorStyle = useMemo(() => {
+    const layout = tabLayouts[activeTab];
+    if (!layout) return { left: 0, width: 0 };
+    const textWidth = 40; // 大约文本宽度
+    const left = layout.x + (layout.width - textWidth) / 2;
+    return { left, width: textWidth };
+  }, [activeTab, tabLayouts]);
+
   return (
     <Screen backgroundColor={DEEP_SPACE_BLACK} statusBarStyle="light">
       <View style={styles.container}>
-        {/* ========== 克莱因蓝头部 ========== */}
-        <View style={styles.kleinHeader}>
-          <View style={styles.brandRow}>
-            <Text style={styles.brandName}>同镜</Text>
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.headerIcon}>
-                <FontAwesome6 name="bell" size={18} color="rgba(255,255,255,0.9)" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.headerIcon}>
-                <FontAwesome6 name="magnifying-glass" size={18} color="rgba(255,255,255,0.9)" />
-              </TouchableOpacity>
+        {/* ========== 紧凑顶部导航栏 ========== */}
+        <View style={styles.topNav}>
+          <View style={styles.topNavLeft}>
+            <View style={styles.brandMark}>
+              <Text style={styles.brandMarkText}>镜</Text>
             </View>
+            <Text style={styles.brandName}>同镜</Text>
           </View>
-          <View style={styles.goldDivider} />
-          <Text style={styles.headerSubtitle}>用镜头看见世界</Text>
+          <View style={styles.topNavRight}>
+            <TouchableOpacity style={styles.navIconBtn}>
+              <FontAwesome6 name="bell" size={16} color="rgba(255,255,255,0.75)" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navIconBtn}>
+              <FontAwesome6 name="magnifying-glass" size={16} color="rgba(255,255,255,0.75)" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* ========== 杂志风标签导航 ========== */}
+        {/* ========== 标签导航 ========== */}
         <View style={styles.tabsSection}>
           <ScrollView
             horizontal
@@ -341,13 +344,16 @@ export default function HomeScreen() {
               style={[
                 styles.tabIndicator,
                 {
-                  left: indicatorLeft,
-                  width: indicatorWidth,
+                  left: indicatorStyle.left,
+                  width: indicatorStyle.width,
                 },
               ]}
             />
           </ScrollView>
         </View>
+
+        {/* ========== 分割线 ========== */}
+        <View style={styles.sectionDivider} />
 
         {/* ========== 照片列表 ========== */}
         <FlatList
