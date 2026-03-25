@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Dimensions,
   Platform,
+  StyleSheet,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
@@ -19,23 +20,33 @@ import { createStyles, CHAMPAGNE_GOLD, DEEP_SPACE_BLACK, SOFT_WHITE } from './st
 import type { Photo } from '@/components/PhotoCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_GAP = 12;
+const CARD_MARGIN = 20;
+const CARD_WIDTH = (SCREEN_WIDTH - CARD_MARGIN * 2 - CARD_GAP) / 2;
+
+// 模拟 Stories 数据
+const STORIES = [
+  { id: 'add', name: '发布', isAdd: true, avatar: null },
+  { id: '1', name: '你的故事', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' },
+  { id: '2', name: '光影日记', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100' },
+  { id: '3', name: '街头猎手', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
+  { id: '4', name: '风光控', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100' },
+  { id: '5', name: '人像师', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100' },
+  { id: '6', name: '城市夜', avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100' },
+];
 
 // 标签配置
 const TABS = [
-  { key: 'featured', label: '精选', icon: 'star' },
-  { key: 'following', label: '关注', icon: 'user-group' },
-  { key: 'trending', label: '热门', icon: 'fire' },
-  { key: 'latest', label: '最新', icon: 'clock' },
-  { key: 'landscape', label: '风光', icon: 'mountain-sun' },
-  { key: 'portrait', label: '人像', icon: 'user' },
-  { key: 'street', label: '街拍', icon: 'road' },
+  { key: 'following', label: '关注' },
+  { key: 'discover', label: '发现' },
+  { key: 'featured', label: '精选' },
 ];
 
 export default function HomeScreen() {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   
-  const [activeTab, setActiveTab] = useState('featured');
+  const [activeTab, setActiveTab] = useState('discover');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -110,6 +121,40 @@ export default function HomeScreen() {
     }
   };
 
+  // 计算指示器位置
+  const indicatorStyle = useMemo(() => {
+    const layout = tabLayouts[activeTab];
+    if (!layout) return { left: 0, width: 0 };
+    const textWidth = layout.width - 24; // 减去 padding
+    const left = layout.x + 12; // 加上 padding-left
+    return { left, width: textWidth };
+  }, [activeTab, tabLayouts]);
+
+  // 渲染 Story 项
+  const renderStory = (story: typeof STORIES[0]) => {
+    if (story.isAdd) {
+      return (
+        <TouchableOpacity key={story.id} style={styles.storyItem}>
+          <View style={styles.storyAddBtn}>
+            <FontAwesome6 name="plus" size={20} color="rgba(255,255,255,0.6)" />
+          </View>
+          <Text style={styles.storyName}>{story.name}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity key={story.id} style={styles.storyItem}>
+        <View style={styles.storyRing}>
+          <Image source={{ uri: story.avatar! }} style={styles.storyAvatar} />
+        </View>
+        <Text style={[styles.storyName, styles.storyNameActive]} numberOfLines={1}>
+          {story.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   // 渲染标签项
   const renderTab = (tab: typeof TABS[0]) => {
     const isActive = activeTab === tab.key;
@@ -129,144 +174,96 @@ export default function HomeScreen() {
         }}
         activeOpacity={0.8}
       >
-        <View style={styles.tabContent}>
-          <FontAwesome6
-            name={tab.icon}
-            size={11}
-            color={isActive ? SOFT_WHITE : 'rgba(255,255,255,0.35)'}
-            solid={isActive}
+        <Text style={isActive ? styles.tabTextActive : styles.tabText}>
+          {tab.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // 随机生成图片高度（瀑布流效果）
+  const getImageHeight = (index: number) => {
+    const heights = [180, 220, 260, 200, 240, 280];
+    return heights[index % heights.length];
+  };
+
+  // 渲染照片卡片（瀑布流）
+  const renderPhotoCard = ({ item, index }: { item: Photo; index: number }) => {
+    const imageHeight = getImageHeight(index);
+    
+    return (
+      <TouchableOpacity
+        style={[styles.photoCard, { width: CARD_WIDTH }]}
+        activeOpacity={0.9}
+      >
+        <View style={{ position: 'relative' }}>
+          <Image
+            source={{ uri: item.image_url }}
+            style={[styles.photoImage, { height: imageHeight }]}
+            resizeMode="cover"
           />
-          <Text style={isActive ? styles.tabTextActive : styles.tabText}>
-            {tab.label}
-          </Text>
+          {/* 底部渐变遮罩 */}
+          <View style={[styles.photoOverlay, { height: 60 }]}>
+            <Text style={styles.photoTitle} numberOfLines={1}>
+              {item.title || '无标题'}
+            </Text>
+            {item.location_name && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <FontAwesome6 name="location-dot" size={8} color="rgba(255,255,255,0.5)" />
+                <Text style={styles.photoLocation} numberOfLines={1}>
+                  {item.location_name}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.cardContent}>
+          <View style={styles.cardHeader}>
+            <Image
+              source={{ uri: item.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}
+              style={styles.cardAvatar}
+            />
+            <Text style={styles.cardUsername} numberOfLines={1}>
+              {item.username || '匿名'}
+            </Text>
+          </View>
+          <View style={styles.cardFooter}>
+            <View style={styles.cardStats}>
+              <TouchableOpacity
+                style={styles.cardStat}
+                onPress={() => handleLike(item.id)}
+              >
+                <FontAwesome6
+                  name="heart"
+                  size={12}
+                  solid={item.is_liked}
+                  color={item.is_liked ? theme.error : 'rgba(255,255,255,0.45)'}
+                />
+                <Text style={styles.cardStatText}>{item.likes_count || 0}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cardStat}
+                onPress={() => handleFavorite(item.id)}
+              >
+                <FontAwesome6
+                  name="bookmark"
+                  size={12}
+                  solid={item.is_favorited}
+                  color={item.is_favorited ? CHAMPAGNE_GOLD : 'rgba(255,255,255,0.45)'}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
     );
   };
 
-  // 渲染照片卡片
-  const renderPhotoCard = ({ item }: { item: Photo }) => (
-    <TouchableOpacity
-      style={styles.photoCard}
-      activeOpacity={0.9}
-    >
-      <View>
-        <Image source={{ uri: item.image_url }} style={styles.photoImage} resizeMode="cover" />
-        <View style={styles.photoExifBar}>
-          <View style={styles.exifRow}>
-            <View style={styles.exifItem}>
-              <FontAwesome6 name="camera" size={10} color="rgba(255,255,255,0.65)" />
-              <Text style={styles.exifText}>{item.camera_model || '未知'}</Text>
-            </View>
-            <View style={styles.exifItem}>
-              <FontAwesome6 name="circle-dot" size={10} color="rgba(255,255,255,0.65)" />
-              <Text style={styles.exifText}>{item.aperture || 'f/2.8'}</Text>
-            </View>
-            <View style={styles.exifItem}>
-              <FontAwesome6 name="clock" size={10} color="rgba(255,255,255,0.65)" />
-              <Text style={styles.exifText}>{item.shutter_speed || '1/125'}</Text>
-            </View>
-            <View style={styles.exifItem}>
-              <FontAwesome6 name="film" size={10} color="rgba(255,255,255,0.65)" />
-              <Text style={styles.exifText}>ISO {item.iso || 400}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Image
-            source={{ uri: item.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}
-            style={styles.cardAvatar}
-          />
-          <View style={styles.cardUserInfo}>
-            <Text style={styles.cardUsername}>{item.username || '匿名摄影师'}</Text>
-            <Text style={styles.cardLocation}>{item.location_name || '未知地点'}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.cardTitle} numberOfLines={2}>
-          {item.title || '无标题'}
-        </Text>
-
-        {item.description && (
-          <Text style={styles.cardDescription} numberOfLines={2}>
-            {item.description}
-          </Text>
-        )}
-
-        {item.tags && item.tags.length > 0 && (
-          <View style={styles.cardTags}>
-            {item.tags.slice(0, 3).map((tag, index) => (
-              <View key={index} style={styles.cardTag}>
-                <Text style={styles.cardTagText}>#{tag.tag_name}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        <View style={styles.cardFooter}>
-          <View style={styles.cardStats}>
-            <TouchableOpacity
-              style={styles.cardStat}
-              onPress={() => handleLike(item.id)}
-            >
-              <FontAwesome6
-                name={item.is_liked ? 'heart' : 'heart'}
-                size={16}
-                solid={item.is_liked}
-                color={item.is_liked ? theme.error : 'rgba(255,255,255,0.45)'}
-              />
-              <Text style={styles.cardStatText}>{item.likes_count || 0}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.cardStat}>
-              <FontAwesome6 name="comment" size={16} color="rgba(255,255,255,0.45)" />
-              <Text style={styles.cardStatText}>{item.comments_count || 0}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cardStat}
-              onPress={() => handleFavorite(item.id)}
-            >
-              <FontAwesome6
-                name={item.is_favorited ? 'bookmark' : 'bookmark'}
-                size={16}
-                solid={item.is_favorited}
-                color={item.is_favorited ? CHAMPAGNE_GOLD : 'rgba(255,255,255,0.45)'}
-              />
-              <Text style={styles.cardStatText}>{item.favorites_count || 0}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.cardShare}>
-            <FontAwesome6 name="share-nodes" size={16} color="rgba(255,255,255,0.45)" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  // 渲染列表头部
-  const renderListHeader = () => (
-    <View style={styles.listHeader}>
-      <View style={styles.listHeaderLeft}>
-        <Text style={styles.listHeaderCount}>{photos.length}</Text>
-        <Text style={styles.listHeaderLabel}>张作品</Text>
-      </View>
-      <TouchableOpacity style={styles.filterButton}>
-        <FontAwesome6 name="sliders" size={12} color={CHAMPAGNE_GOLD} />
-        <Text style={styles.filterButtonText}>筛选</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   // 渲染列表底部
   const renderListFooter = () => (
     <View style={styles.listFooter}>
       <Text style={styles.footerBrand}>同镜</Text>
-      <View style={styles.footerLine} />
     </View>
   );
 
@@ -301,19 +298,37 @@ export default function HomeScreen() {
     );
   };
 
-  // 计算指示器位置和宽度
-  const indicatorStyle = useMemo(() => {
-    const layout = tabLayouts[activeTab];
-    if (!layout) return { left: 0, width: 0 };
-    const textWidth = 40;
-    const left = layout.x + (layout.width - textWidth) / 2;
-    return { left, width: textWidth };
-  }, [activeTab, tabLayouts]);
+  // 构建瀑布流数据（双列）
+  const masonryData = useMemo(() => {
+    const leftColumn: (Photo & { colIndex: number })[] = [];
+    const rightColumn: (Photo & { colIndex: number })[] = [];
+    
+    photos.forEach((photo, index) => {
+      if (index % 2 === 0) {
+        leftColumn.push({ ...photo, colIndex: index });
+      } else {
+        rightColumn.push({ ...photo, colIndex: index });
+      }
+    });
+
+    return { leftColumn, rightColumn };
+  }, [photos]);
 
   return (
     <Screen backgroundColor={DEEP_SPACE_BLACK} statusBarStyle="light">
       <View style={styles.container}>
-        {/* ========== 标签导航（顶部唯一元素）========== */}
+        {/* ========== Stories 横向滚动条 ========== */}
+        <View style={styles.storiesSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.storiesScrollContent}
+          >
+            {STORIES.map(renderStory)}
+          </ScrollView>
+        </View>
+
+        {/* ========== 标签导航 ========== */}
         <View style={styles.tabsSection}>
           <ScrollView
             horizontal
@@ -334,18 +349,11 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* ========== 分割线 ========== */}
-        <View style={styles.sectionDivider} />
-
-        {/* ========== 照片列表 ========== */}
-        <FlatList
-          data={photos}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderPhotoCard}
-          ListHeaderComponent={renderListHeader}
-          ListFooterComponent={renderListFooter}
-          ListEmptyComponent={renderEmpty}
-          contentContainerStyle={styles.listSection}
+        {/* ========== 双列瀑布流 ========== */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.masonryContainer}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -354,8 +362,31 @@ export default function HomeScreen() {
               colors={[CHAMPAGNE_GOLD]}
             />
           }
-          showsVerticalScrollIndicator={false}
-        />
+        >
+          {loading || photos.length === 0 ? (
+            renderEmpty()
+          ) : (
+            <View style={styles.masonryRow}>
+              {/* 左列 */}
+              <View style={styles.masonryColumn}>
+                {masonryData.leftColumn.map((photo) => (
+                  <View key={`left-${photo.id}`}>
+                    {renderPhotoCard({ item: photo, index: photo.colIndex })}
+                  </View>
+                ))}
+              </View>
+              {/* 右列 */}
+              <View style={styles.masonryColumn}>
+                {masonryData.rightColumn.map((photo) => (
+                  <View key={`right-${photo.id}`}>
+                    {renderPhotoCard({ item: photo, index: photo.colIndex })}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          {renderListFooter()}
+        </ScrollView>
       </View>
     </Screen>
   );

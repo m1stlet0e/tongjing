@@ -1,4 +1,4 @@
-import { StyleSheet, Platform, StatusBar } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
 
 // 克莱因蓝高定风配色
@@ -8,6 +8,11 @@ export const DEEP_SPACE_BLACK = '#0A0A0F';
 export const SOFT_WHITE = '#FAFAFA';
 export const WARM_GRAY = '#1A1A1F';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_GAP = Spacing.md;
+const CARD_MARGIN = Spacing.lg;
+const CARD_WIDTH = (SCREEN_WIDTH - CARD_MARGIN * 2 - CARD_GAP) / 2;
+
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     // 容器
@@ -15,41 +20,85 @@ export const createStyles = (theme: Theme) => {
       flex: 1,
       backgroundColor: DEEP_SPACE_BLACK,
     },
-    scrollContent: {
-      paddingBottom: Spacing['5xl'],
+
+    // ========== Stories 横向滚动条 ==========
+    storiesSection: {
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255,255,255,0.05)',
+    },
+    storiesScrollContent: {
+      paddingHorizontal: CARD_MARGIN,
+      gap: Spacing.md,
+    },
+    storyItem: {
+      alignItems: 'center',
+      width: 72,
+    },
+    storyRing: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      borderWidth: 2,
+      borderColor: CHAMPAGNE_GOLD,
+      padding: 2,
+      marginBottom: Spacing.xs,
+    },
+    storyAvatar: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 28,
+    },
+    storyAddRing: {
+      borderColor: 'rgba(255,255,255,0.2)',
+      borderStyle: 'dashed',
+    },
+    storyAddBtn: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.2)',
+      borderStyle: 'dashed',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: Spacing.xs,
+    },
+    storyName: {
+      color: 'rgba(255,255,255,0.6)',
+      fontSize: 10,
+      fontWeight: '300',
+      letterSpacing: 0.3,
+      textAlign: 'center',
+    },
+    storyNameActive: {
+      color: SOFT_WHITE,
     },
 
-    // ========== 标签导航（顶部唯一元素）==========
+    // ========== 标签导航 ==========
     tabsSection: {
       backgroundColor: DEEP_SPACE_BLACK,
-      paddingTop: Platform.OS === 'web' ? Spacing.lg : Spacing.xl,
-      paddingBottom: Spacing.sm,
+      paddingVertical: Spacing.sm,
     },
     tabsScrollContent: {
-      paddingHorizontal: Spacing.lg,
+      paddingHorizontal: CARD_MARGIN,
     },
     tabItem: {
-      paddingVertical: Spacing.md,
+      paddingVertical: Spacing.sm,
       paddingHorizontal: Spacing.md,
-      marginRight: Spacing.lg,
-      alignItems: 'center',
-    },
-    tabContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.sm,
+      marginRight: Spacing.md,
     },
     tabText: {
       color: 'rgba(255,255,255,0.4)',
       fontSize: 13,
       fontWeight: '400',
-      letterSpacing: 1,
+      letterSpacing: 0.5,
     },
     tabTextActive: {
       color: SOFT_WHITE,
       fontSize: 13,
-      fontWeight: '500',
-      letterSpacing: 1,
+      fontWeight: '600',
+      letterSpacing: 0.5,
     },
     tabIndicator: {
       position: 'absolute',
@@ -59,194 +108,99 @@ export const createStyles = (theme: Theme) => {
       borderRadius: 1,
     },
 
-    // ========== 内容分割线 ==========
-    sectionDivider: {
-      height: 1,
-      backgroundColor: 'rgba(201,169,110,0.1)',
-      marginHorizontal: Spacing.lg,
+    // ========== 瀑布流列表 ==========
+    masonryContainer: {
+      paddingHorizontal: CARD_MARGIN,
+      paddingTop: Spacing.sm,
+    },
+    masonryColumn: {
+      flex: 1,
+    },
+    masonryRow: {
+      flexDirection: 'row',
+      gap: CARD_GAP,
     },
 
-    // ========== 列表区域 ==========
-    listSection: {
-      backgroundColor: DEEP_SPACE_BLACK,
-      paddingTop: Spacing.md,
-    },
-    
-    // 列表头部统计
-    listHeader: {
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.md,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    listHeaderLeft: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: Spacing.sm,
-    },
-    listHeaderCount: {
-      color: CHAMPAGNE_GOLD,
-      fontSize: 20,
-      fontWeight: '300',
-      letterSpacing: 1,
-    },
-    listHeaderLabel: {
-      color: 'rgba(255,255,255,0.3)',
-      fontSize: 12,
-      fontWeight: '300',
-      letterSpacing: 0.5,
-    },
-    filterButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.xs,
-      paddingVertical: Spacing.sm,
-      paddingHorizontal: Spacing.md,
-      borderRadius: BorderRadius.full,
-      borderWidth: 1,
-      borderColor: 'rgba(201,169,110,0.25)',
-    },
-    filterButtonText: {
-      color: CHAMPAGNE_GOLD,
-      fontSize: 12,
-      fontWeight: '300',
-      letterSpacing: 0.5,
-    },
-
-    // 照片卡片
+    // 照片卡片（瀑布流）
     photoCard: {
-      marginHorizontal: Spacing.lg,
-      marginBottom: Spacing.lg,
+      marginBottom: CARD_GAP,
       backgroundColor: WARM_GRAY,
       borderRadius: 12,
       overflow: 'hidden',
+      width: CARD_WIDTH,
     },
     photoImage: {
       width: '100%',
-      aspectRatio: 4 / 3,
     },
-    photoExifBar: {
+    photoOverlay: {
       position: 'absolute',
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: 'rgba(0,0,0,0.65)',
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.sm,
+      paddingTop: Spacing['2xl'],
+      paddingHorizontal: Spacing.sm,
+      paddingBottom: Spacing.sm,
+      backgroundColor: 'rgba(0,0,0,0.5)',
     },
-    exifRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.lg,
+    photoTitle: {
+      color: SOFT_WHITE,
+      fontSize: 12,
+      fontWeight: '400',
+      letterSpacing: 0.2,
+      marginBottom: 2,
     },
-    exifItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Spacing.xs,
-    },
-    exifText: {
-      color: 'rgba(255,255,255,0.75)',
+    photoLocation: {
+      color: 'rgba(255,255,255,0.5)',
       fontSize: 10,
       fontWeight: '300',
-      letterSpacing: 0.3,
     },
     
     // 卡片内容
     cardContent: {
-      padding: Spacing.lg,
+      padding: Spacing.sm,
     },
     cardHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: Spacing.md,
+      marginBottom: Spacing.xs,
     },
     cardAvatar: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      marginRight: Spacing.md,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      marginRight: Spacing.sm,
       borderWidth: 1,
-      borderColor: 'rgba(201,169,110,0.4)',
-    },
-    cardUserInfo: {
-      flex: 1,
+      borderColor: 'rgba(201,169,110,0.3)',
     },
     cardUsername: {
       color: SOFT_WHITE,
-      fontSize: 14,
+      fontSize: 11,
       fontWeight: '400',
-      letterSpacing: 0.3,
-    },
-    cardLocation: {
-      color: 'rgba(255,255,255,0.4)',
-      fontSize: 11,
-      fontWeight: '300',
-      marginTop: 2,
-    },
-    cardTitle: {
-      color: SOFT_WHITE,
-      fontSize: 16,
-      fontWeight: '500',
-      letterSpacing: 0.3,
-      marginBottom: Spacing.sm,
-    },
-    cardDescription: {
-      color: 'rgba(255,255,255,0.55)',
-      fontSize: 13,
-      fontWeight: '300',
       letterSpacing: 0.2,
-      lineHeight: 19,
-      marginBottom: Spacing.md,
+      flex: 1,
     },
-    cardTags: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: Spacing.sm,
-      marginBottom: Spacing.md,
-    },
-    cardTag: {
-      paddingVertical: Spacing.xs,
-      paddingHorizontal: Spacing.md,
-      borderRadius: BorderRadius.full,
-      backgroundColor: 'rgba(201,169,110,0.1)',
-    },
-    cardTagText: {
-      color: CHAMPAGNE_GOLD,
-      fontSize: 11,
-      fontWeight: '300',
-      letterSpacing: 0.5,
-    },
-    
-    // 卡片底部
     cardFooter: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderTopWidth: 1,
-      borderTopColor: 'rgba(255,255,255,0.06)',
-      paddingTop: Spacing.md,
     },
     cardStats: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: Spacing.xl,
+      gap: Spacing.md,
     },
     cardStat: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: Spacing.xs,
+      gap: 3,
     },
     cardStatText: {
       color: 'rgba(255,255,255,0.5)',
-      fontSize: 13,
+      fontSize: 10,
       fontWeight: '300',
     },
-    cardShare: {
-      padding: Spacing.sm,
-    },
 
-    // ========== 底部品牌标识 ==========
+    // ========== 列表底部 ==========
     listFooter: {
       alignItems: 'center',
       paddingVertical: Spacing['2xl'],
@@ -257,14 +211,7 @@ export const createStyles = (theme: Theme) => {
       fontWeight: '300',
       letterSpacing: 6,
       textTransform: 'uppercase',
-      opacity: 0.3,
-    },
-    footerLine: {
-      width: 40,
-      height: 1,
-      backgroundColor: CHAMPAGNE_GOLD,
-      opacity: 0.2,
-      marginTop: Spacing.sm,
+      opacity: 0.25,
     },
 
     // ========== 状态提示 ==========
@@ -294,7 +241,6 @@ export const createStyles = (theme: Theme) => {
       marginTop: Spacing.md,
     },
 
-    // ========== 错误提示 ==========
     errorState: {
       alignItems: 'center',
       paddingVertical: Spacing['3xl'],
